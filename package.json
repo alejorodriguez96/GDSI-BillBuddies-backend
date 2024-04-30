@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/alejorodriguez96/GDSI-BillBuddies-backend#readme",
   "dependencies": {
-    "express": "^4.19.2"
+    "bcrypt": "^5.1.1",
+    "express": "^4.19.2",
+    "pg": "^8.11.5",
+    "sequelize": "^6.37.3"
   }
 }
