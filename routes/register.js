@@ -14,7 +14,11 @@ router.post('/', async (req, res) => {
         const hashedUserId = md5(user.id.toString());
         user.hash = hashedUserId;
         await user.save();
-        res.status(201).json(user);
+        const response = {
+            email: user.email,
+            hash: user.hash
+        };
+        res.status(201).json(response);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
