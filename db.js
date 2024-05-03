@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 
 const database = process.env.DB_NAME || 'dev_db';
 const username = process.env.DB_USER || 'postgres';
-const password = process.env.DB_PASS || "123456";
+const password = process.env.DB_PASSWORD || "123456";
 const host = process.env.DB_HOST || "localhost";
 const port = process.env.DB_PORT || 5432;
 
