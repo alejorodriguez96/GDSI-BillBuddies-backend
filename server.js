@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
-const { sequelize } = require('./db');
+const swaggerUI = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
 const registerRoute = require('./routes/register');
 const authRoute = require('./routes/auth');
 
@@ -8,6 +9,7 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use(express.json());
 
 app.use('/register', registerRoute);

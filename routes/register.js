@@ -5,6 +5,37 @@ const md5 = require('md5');
 
 const router = express.Router();
 
+/**
+ * @openapi
+ * '/register':
+ *  post:
+ *     tags:
+ *     - User Controller
+ *     summary: Create a user
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - email
+ *              - password
+ *            properties:
+ *              email:
+ *                type: string
+ *                default: johndoe@mail.com
+ *              password:
+ *                type: string
+ *                default: johnDoe20!@
+ *     responses:
+ *      201:
+ *        description: Created
+ *      400:
+ *        description: Bad Request
+ *      500:
+ *        description: Server Error
+ */
 router.post('/', async (req, res) => {
     const { email, password } = req.body;
 
