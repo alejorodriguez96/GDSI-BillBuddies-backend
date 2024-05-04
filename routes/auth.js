@@ -1,7 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { User } = require('../models/user');
-const md5 = require('md5');
 
 const router = express.Router();
 
@@ -20,11 +19,19 @@ const router = express.Router();
  *            type: object
  *            required:
  *              - email
+ *              - first_name
+ *              - last_name
  *              - password
  *            properties:
  *              email:
  *                type: string
  *                default: johndoe@mail.com
+ *              first_name:
+ *                type: string
+ *                default: John
+ *              last_name:
+ *                type: string
+ *                default: Doe
  *              password:
  *                type: string
  *                default: johnDoe20!@
@@ -49,6 +56,8 @@ router.post('/login/', async (req, res) => {
             throw new Error('Invalid password');
         }
         const response = {
+            first_name: user.first_name,
+            last_name: user.last_name,
             email: user.email,
             hash: user.hash
         };
