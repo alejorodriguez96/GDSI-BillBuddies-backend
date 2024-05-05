@@ -19,19 +19,11 @@ const router = express.Router();
  *            type: object
  *            required:
  *              - email
- *              - first_name
- *              - last_name
  *              - password
  *            properties:
  *              email:
  *                type: string
  *                default: johndoe@mail.com
- *              first_name:
- *                type: string
- *                default: John
- *              last_name:
- *                type: string
- *                default: Doe
  *              password:
  *                type: string
  *                default: johnDoe20!@
