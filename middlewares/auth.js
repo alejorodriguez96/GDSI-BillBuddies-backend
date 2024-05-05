@@ -1,7 +1,13 @@
 const { User } = require('../models/user');
 
 async function auth(req, res, next) {
-    const { hash } = req.headers;
+    const { authorization } = req.headers;
+    console.log(req.headers);
+    if (!authorization) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    const hash = authorization.replace('Bearer ', '');
 
     try {
         const user = await User.findOne({ where: { hash } });

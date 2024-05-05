@@ -11,6 +11,8 @@ const router = express.Router();
  *     tags:
  *     - Groups Controller
  *     summary: Get a group by id
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *     - in: path
  *       name: id
@@ -49,6 +51,8 @@ router.get('/:id', async (req, res) => {
  *     tags:
  *     - Groups Controller
  *     summary: Create a group
+ *     security:
+ *     - bearerAuth: []
  *     requestBody:
  *      required: true
  *      content:

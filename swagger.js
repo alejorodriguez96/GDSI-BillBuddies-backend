@@ -17,6 +17,14 @@ const swaggerDefinition = {
           description: "Live server"
         },
     ],
+    components: {
+        securitySchemes: {
+            bearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+            },
+        },
+    }
 };
 
 const options = {
