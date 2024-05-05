@@ -20,11 +20,19 @@ const router = express.Router();
  *            type: object
  *            required:
  *              - email
+ *              - first_name
+ *              - last_name
  *              - password
  *            properties:
  *              email:
  *                type: string
  *                default: johndoe@mail.com
+ *              first_name:
+ *                type: string
+ *                default: John
+ *              last_name:
+ *                type: string
+ *                default: Doe
  *              password:
  *                type: string
  *                default: johnDoe20!@
@@ -37,15 +45,23 @@ const router = express.Router();
  *        description: Server Error
  */
 router.post('/', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, first_name, last_name } = req.body;
 
     try {
         const encryptedPassword = await bcrypt.hash(password.toString(), 10);
-        const user = await User.create({ email, password: encryptedPassword});
+        const user = await User.create({ 
+            email,
+            first_name,
+            last_name,
+            password: encryptedPassword
+        });
+        console.log(user);
         const hashedUserId = md5(user.id.toString());
         user.hash = hashedUserId;
         await user.save();
         const response = {
+            first_name: user.first_name,
+            last_name: user.last_name,
             email: user.email,
             hash: user.hash
         };
