@@ -44,6 +44,36 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+
+/**
+ * @openapi
+ * '/groups':
+ *  get:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Get all groups
+ *     security:
+ *      - bearerAuth: []
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      500:
+ *        description: Server Error
+ */
+router.get('/', async (req, res) => {
+    const { user } = req;
+
+    try {
+        const groups = await user.getGroups();
+        res.status(200).json(groups);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 /**
  * @openapi
  * '/groups':

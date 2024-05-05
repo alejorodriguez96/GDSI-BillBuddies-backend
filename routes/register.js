@@ -55,7 +55,6 @@ router.post('/', async (req, res) => {
             last_name,
             password: encryptedPassword
         });
-        console.log(user);
         const hashedUserId = md5(user.id.toString());
         user.hash = hashedUserId;
         await user.save();

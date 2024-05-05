@@ -2,7 +2,6 @@ const { User } = require('../models/user');
 
 async function auth(req, res, next) {
     const { authorization } = req.headers;
-    console.log(req.headers);
     if (!authorization) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
