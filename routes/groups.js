@@ -24,10 +24,10 @@ const router = express.Router();
  *     responses:
  *      200:
  *        description: OK
- *      400:
- *        description: Bad Request
  *      401:
  *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
  *      500:
  *        description: Server Error
  */
@@ -41,7 +41,7 @@ router.get('/:id', async (req, res) => {
         }
         res.status(200).json(group);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(404).json({ error: error.message });
     }
 });
 
@@ -150,10 +150,10 @@ router.post('/', async (req, res) => {
  *     responses:
  *      201:
  *        description: Created
- *      400:
- *        description: Bad Request
  *      401:
  *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
  *      500:
  *        description: Server Error
  */
@@ -175,7 +175,67 @@ router.post('/', async (req, res) => {
 
         res.status(201).json(group);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(404).json({ error: error.message });
+    }
+});
+
+/**
+ * @openapi
+ * '/groups/{id}/integrant':
+ *  delete:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Remove an integrant from a group
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - email
+ *            properties:
+ *              email:
+ *                type: string
+ *                default: johndoe@mail.com
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
+ *      500:
+ *        description: Server Error
+ */
+ router.delete('/:id/integrant', async (req, res) => {
+    const { id } = req.params;
+    const { email } = req.body;
+
+    try {
+        const group = await Group.findByPk(id);
+        if (!group) {
+            throw new Error('Group not found');
+        }
+        const integrant = await User.findOne({ where: { email } });
+        if (!integrant) {
+            throw new Error('User not found');
+        }
+        group.removeUser(integrant);
+        await group.save();
+
+        res.status(201).json(group);
+    } catch (error) {
+        res.status(404).json({ error: error.message });
     }
 });
 
