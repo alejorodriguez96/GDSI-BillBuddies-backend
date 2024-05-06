@@ -1,4 +1,6 @@
 const { Group } = require('../models/group');
+const { User } = require('../models/user');
+const { InviteNotification } = require('../models/notification');
 
 async function getGroups(req, res) {
     const { id } = req.params;
@@ -30,7 +32,7 @@ async function createGroup(req, res) {
 
     try {
         const group = await Group.create({ name });
-        group.addUser(req.user);
+        group.addUser(req.user, { through: { accepted: true } });
         await group.save();
         res.status(201).json(group);
     } catch (error) {
@@ -40,6 +42,7 @@ async function createGroup(req, res) {
 
 async function addGroupMember(req, res) {
     const { id } = req.params;
+    const { user } = req;
     const { email } = req.body;
 
     try {
@@ -51,8 +54,9 @@ async function addGroupMember(req, res) {
         if (!integrant) {
             throw new Error('User not found');
         }
-        group.addUser(integrant);
+        await group.addUser(integrant);
         await group.save();
+        await new InviteNotification(user, group, integrant).save();
 
         res.status(201).json(group);
     } catch (error) {

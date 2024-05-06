@@ -29,15 +29,16 @@ Notification.belongsTo(User);
 User.hasMany(Notification);
 
 class InviteNotification extends Notification {
-    constructor(inviter, group) {
+    constructor(inviter, group, targetUser) {
         super();
-        this.message = `${inviter.firstName} ${inviter.lastName} te invitó a unirte al grupo ${group.name}`;
+        this.message = `${inviter.first_name} ${inviter.last_name} te invitó a unirte al grupo ${group.name}`;
         this.type = NOTIFICATION_TYPES.NEW_GROUP;
         this.data = { 
             groupId: group.id,
             inviterId: inviter.id,
         };
         this.read = false;
+        this.UserId = targetUser.id;
     }
 }
 
