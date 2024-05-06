@@ -1,6 +1,5 @@
 const express = require('express');
-const { Group } = require('../models/group');
-const { User } = require('../models/user');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -31,19 +30,7 @@ const router = express.Router();
  *      500:
  *        description: Server Error
  */
-router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const group = await Group.findByPk(id);
-        if (!group) {
-            throw new Error('Group not found');
-        }
-        res.status(200).json(group);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
+router.get('/:id', getGroups);
 
 
 /**
@@ -63,16 +50,7 @@ router.get('/:id', async (req, res) => {
  *      500:
  *        description: Server Error
  */
-router.get('/', async (req, res) => {
-    const { user } = req;
-
-    try {
-        const groups = await user.getGroups();
-        res.status(200).json(groups);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.get('/', getAllGroups);
 
 
 /**
@@ -106,18 +84,7 @@ router.get('/', async (req, res) => {
  *      500:
  *        description: Server Error
  */
-router.post('/', async (req, res) => {
-    const { name } = req.body;
-
-    try {
-        const group = await Group.create({ name });
-        group.addUser(req.user);
-        await group.save();
-        res.status(201).json(group);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
+router.post('/', createGroup);
 
 /**
  * @openapi
@@ -157,27 +124,7 @@ router.post('/', async (req, res) => {
  *      500:
  *        description: Server Error
  */
- router.post('/:id/integrant', async (req, res) => {
-    const { id } = req.params;
-    const { email } = req.body;
-
-    try {
-        const group = await Group.findByPk(id);
-        if (!group) {
-            throw new Error('Group not found');
-        }
-        const integrant = await User.findOne({ where: { email } });
-        if (!integrant) {
-            throw new Error('User not found');
-        }
-        group.addUser(integrant);
-        await group.save();
-
-        res.status(201).json(group);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
+ router.post('/:id/integrant', addGroupMember);
 
 /**
  * @openapi
@@ -217,26 +164,6 @@ router.post('/', async (req, res) => {
  *      500:
  *        description: Server Error
  */
- router.delete('/:id/integrant', async (req, res) => {
-    const { id } = req.params;
-    const { email } = req.body;
-
-    try {
-        const group = await Group.findByPk(id);
-        if (!group) {
-            throw new Error('Group not found');
-        }
-        const integrant = await User.findOne({ where: { email } });
-        if (!integrant) {
-            throw new Error('User not found');
-        }
-        group.removeUser(integrant);
-        await group.save();
-
-        res.status(201).json(group);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
+ router.delete('/:id/integrant', removeGroupMember);
 
 module.exports = router;
