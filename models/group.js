@@ -15,6 +15,10 @@ const UserGroup = sequelize.define('UserGroup', {
     accepted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    rejected: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 });
 

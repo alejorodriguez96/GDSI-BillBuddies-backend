@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember } = require('../controllers/groups');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -124,7 +124,47 @@ router.post('/', createGroup);
  *      500:
  *        description: Server Error
  */
- router.post('/:id/integrant', addGroupMember);
+router.post('/:id/integrant', addGroupMember);
+
+/**
+ * @openapi
+ * '/groups/{id}/integrant':
+ *  put:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Accept or reject a group invitation
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - accept
+ *            properties:
+ *              accept:
+ *                type: string
+ *                default: true
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
+ *      500:
+ *        description: Server Error
+ */
+router.put('/:id/integrant', acceptGroupInvitation);
 
 /**
  * @openapi

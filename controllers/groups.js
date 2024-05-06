@@ -1,4 +1,4 @@
-const { Group } = require('../models/group');
+const { Group, UserGroup } = require('../models/group');
 const { User } = require('../models/user');
 const { InviteNotification } = require('../models/notification');
 
@@ -86,10 +86,38 @@ async function removeGroupMember(req, res) {
     }
 }
 
+async function acceptGroupInvitation(req, res) {
+    const { id } = req.params;
+    const { user } = req;
+
+    try {
+        const group = await Group.findByPk(id);
+        if (!group) {
+            throw new Error('Group not found');
+        }
+        const accepted = req.body.accept;
+        if (!accepted) {
+            throw new Error('Invalid request');
+        }
+        const userGroup = await UserGroup.findOne({ where: { GroupId: group.id, UserId: user.id } });
+        if (!userGroup) {
+            throw new Error('User not found in group');
+        }
+        userGroup.accepted = accepted;
+        userGroup.rejected = !accepted;
+        await userGroup.save();
+
+        res.status(201).json(group);
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+}
+
 module.exports = {
     getGroups,
     getAllGroups,
     createGroup,
     addGroupMember,
     removeGroupMember,
+    acceptGroupInvitation,
 };
