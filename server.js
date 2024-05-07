@@ -5,6 +5,7 @@ const swaggerSpec = require('./swagger');
 const registerRoute = require('./routes/register');
 const authRoute = require('./routes/auth');
 const groupsRoute = require('./routes/groups');
+const notificationsRoute = require('./routes/notifications');
 const authMiddleware = require('./middlewares/auth');
 const cors = require('cors');
 
@@ -19,6 +20,7 @@ app.use(cors());
 app.use('/register', registerRoute);
 app.use('/auth', authRoute);
 app.use('/groups', authMiddleware, groupsRoute);
+app.use('/notifications', authMiddleware, notificationsRoute);
 
 const PORT = process.env.NODE_PORT || 8081;
 app.listen(PORT, () => {
