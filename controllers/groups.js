@@ -113,6 +113,21 @@ async function acceptGroupInvitation(req, res) {
     }
 }
 
+async function getGroupMembers(req, res) {
+    const { id } = req.params;
+
+    try {
+        const group = await Group.findByPk(id);
+        if (!group) {
+            throw new Error('Group not found');
+        }
+        const members = await group.getUsers();
+        res.status(200).json(members); 
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+}
+
 module.exports = {
     getGroups,
     getAllGroups,
@@ -120,4 +135,5 @@ module.exports = {
     addGroupMember,
     removeGroupMember,
     acceptGroupInvitation,
+    getGroupMembers,
 };
