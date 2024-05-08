@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation } = require('../controllers/groups');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -205,5 +205,33 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *        description: Server Error
  */
  router.delete('/:id/integrant', removeGroupMember);
+
+ /**
+ * @openapi
+ * '/groups/{id}/integrant':
+ *  get:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Get all integrants from a group
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
+ *      500:
+ *        description: Server Error
+ */
+ router.get('/:id/integrant', getGroupMembers);
 
 module.exports = router;
