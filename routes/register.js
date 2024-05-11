@@ -1,7 +1,6 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
-const { User } = require('../models/user');
-const md5 = require('md5');
+const { createUser, verifyUser } = require('../controllers/register');
+const e = require('express');
 
 const router = express.Router();
 
@@ -44,30 +43,30 @@ const router = express.Router();
  *      500:
  *        description: Server Error
  */
-router.post('/', async (req, res) => {
-    const { email, password, first_name, last_name } = req.body;
+router.post('/', createUser);
 
-    try {
-        const encryptedPassword = await bcrypt.hash(password.toString(), 10);
-        const user = await User.create({ 
-            email,
-            first_name,
-            last_name,
-            password: encryptedPassword
-        });
-        const hashedUserId = md5(user.id.toString());
-        user.hash = hashedUserId;
-        await user.save();
-        const response = {
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            hash: user.hash
-        };
-        res.status(201).json(response);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
+/**
+ * @openapi
+ * '/register/confirm':
+ *  get:
+ *     tags:
+ *     - User Controller
+ *     summary: Verify a user
+ *     parameters:
+ *     - in: query
+ *       name: token
+ *       required: true
+ *       schema:
+ *        type: string
+ *       description: User verification token
+ *     responses:
+ *      200:
+ *        description: OK
+ *      404:
+ *        description: Resource not found
+ *      500:
+ *        description: Server Error
+ */
+router.get('/confirm', verifyUser);
 
 module.exports = router;

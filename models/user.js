@@ -21,6 +21,10 @@ const User = sequelize.define('User', {
     hash: {
         type: DataTypes.STRING,
     },
+    verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    }
 }, {
     tableName: 'users',
 });
