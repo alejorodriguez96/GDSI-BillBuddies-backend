@@ -21,6 +21,7 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "md5": "^2.3.0",
+    "nodemailer": "^6.9.13",
     "pg": "^8.11.5",
     "sequelize": "^6.37.3",
     "swagger-jsdoc": "^6.2.8",
