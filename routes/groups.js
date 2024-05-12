@@ -109,11 +109,11 @@ router.post('/', createGroup);
  *           schema:
  *            type: object
  *            required:
- *              - email
+ *              - userId
  *            properties:
- *              email:
+ *              userId:
  *                type: string
- *                default: johndoe@mail.com
+ *                default: 1
  *     responses:
  *      201:
  *        description: Created

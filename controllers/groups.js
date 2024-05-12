@@ -43,14 +43,14 @@ async function createGroup(req, res) {
 async function addGroupMember(req, res) {
     const { id } = req.params;
     const { user } = req;
-    const { email } = req.body;
+    const { userId } = req.body;
 
     try {
         const group = await Group.findByPk(id);
         if (!group) {
             throw new Error('Group not found');
         }
-        const integrant = await User.findOne({ where: { email } });
+        const integrant = await User.findByPk(userId);
         if (!integrant) {
             throw new Error('User not found');
         }
