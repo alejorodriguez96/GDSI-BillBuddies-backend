@@ -47,7 +47,7 @@ router.post('/', createUser);
 
 /**
  * @openapi
- * '/register/confirm':
+ * '/register/verify':
  *  get:
  *     tags:
  *     - User Controller
@@ -67,6 +67,6 @@ router.post('/', createUser);
  *      500:
  *        description: Server Error
  */
-router.get('/confirm', verifyUser);
+router.get('/verify', verifyUser);
 
 module.exports = router;
