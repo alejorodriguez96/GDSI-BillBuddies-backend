@@ -22,10 +22,21 @@ const UserGroup = sequelize.define('UserGroup', {
     }
 });
 
+const BillGroup = sequelize.define('BillGroup', {
+    amount: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+}, {
+    tableName: 'bill_groups',
+});
+
+Group.hasMany(BillGroup);
 Group.belongsToMany(User, { through: UserGroup });
 User.belongsToMany(Group, { through: UserGroup });
 
 module.exports = {
     Group,
     UserGroup,
+    BillGroup,
 }
