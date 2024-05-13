@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db');
 const { User } = require('./user');
+const { UserDebts } = require('./debts');
 
 const Group = sequelize.define('Group', {
     name: {
@@ -32,6 +33,7 @@ const BillGroup = sequelize.define('BillGroup', {
 });
 
 Group.hasMany(BillGroup);
+BillGroup.hasMany(UserDebts);
 Group.belongsToMany(User, { through: UserGroup });
 User.belongsToMany(Group, { through: UserGroup });
 
