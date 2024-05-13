@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers } = require('../controllers/groups');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -233,5 +233,63 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *        description: Server Error
  */
  router.get('/:id/integrant', getGroupMembers);
+
+ /**
+ * @openapi
+ * '/groups/bill':
+ *  post:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Create a bill for a group
+ *     security:
+ *     - bearerAuth: []
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - group_id
+ *              - bill_amount
+ *            properties:
+ *              group_id:
+ *                type: integer
+ *                default: 1
+ *              bill_amount:
+ *                type: integer
+ *                default: 200
+ *     responses:
+ *      200:
+ *        description: OK
+ *      404:
+ *        description: Resource not found
+ */
+ router.post('/bill', addBillToGroup);
+
+
+ /**
+ * @openapi
+ * '/groups/{id}/bills':
+ *  get:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Get all bills from a group
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      404:
+ *        description: Resource not found
+ */
+ router.get('/:id/bills', getGroupBills);
 
 module.exports = router;
