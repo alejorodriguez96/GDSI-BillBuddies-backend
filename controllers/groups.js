@@ -1,4 +1,4 @@
-const { Group, UserGroup } = require('../models/group');
+const { Group, UserGroup, BillGroup} = require('../models/group');
 const { User } = require('../models/user');
 const { InviteNotification } = require('../models/notification');
 
@@ -128,6 +128,48 @@ async function getGroupMembers(req, res) {
     }
 }
 
+async function getGroupBills(req, res) {
+    const { id } = req.params;
+    console.log("VAMOS NORA");
+    try {
+        const group = await Group.findByPk(id);
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const billGroups = await BillGroup.findAll({
+            where: { GroupId: id }, 
+            attributes: ['amount'] 
+        });
+
+        const amounts = billGroups.map(billGroup => billGroup.amount);
+
+        res.status(200).json(amounts);
+
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+}
+
+async function addBillToGroup(req, res) {
+    const { group_id, bill_amount} = req.body;
+
+    try {
+        const selectedGroup = await Group.findByPk(group_id);
+        if (!selectedGroup) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+        const newBill = await BillGroup.create({ amount: bill_amount });
+        
+        await selectedGroup.addBillGroup(newBill);
+        res.status(201).json({ success: true, data: newBill });
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+}
+
+
 module.exports = {
     getGroups,
     getAllGroups,
@@ -136,4 +178,6 @@ module.exports = {
     removeGroupMember,
     acceptGroupInvitation,
     getGroupMembers,
+    getGroupBills,
+    addBillToGroup
 };
