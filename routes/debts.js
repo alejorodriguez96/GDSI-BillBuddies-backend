@@ -1,12 +1,12 @@
 const express = require('express');
-const { equitativeDivision } = require('../controllers/debts');
+const { makeDivision } = require('../controllers/debts');
 
 const router = express.Router();
 
 /**
  * @openapi
  * '/debts/divide':
- *  post:
+ *  put:
  *     tags:
  *     - Debts Controller
  *     summary: Divide equality a bill of a group
@@ -20,20 +20,22 @@ const router = express.Router();
  *            type: object
  *            required:
  *              - group_id
+ *              - mode
  *            properties:
  *              group_id:
  *                type: integer
  *                default: 1
+ *              mode:
+ *                type: string
+ *                default: equitative
  *     responses:
- *      201:
- *        description: Created
- *      400:
+ *      200:
+ *        description: Divide Successful
+ *      404:
  *        description: Bad Request
  *      401:
  *        description: Unauthorized
- *      500:
- *        description: Server Error
  */
-router.post('/', equitativeDivision);
+router.put('/divide', makeDivision);
 
 module.exports = router;
