@@ -34,6 +34,7 @@ const BillGroup = sequelize.define('BillGroup', {
 
 Group.hasMany(BillGroup);
 BillGroup.hasMany(UserDebts);
+BillGroup.hasOne(User);
 Group.belongsToMany(User, { through: UserGroup });
 User.belongsToMany(Group, { through: UserGroup });
 

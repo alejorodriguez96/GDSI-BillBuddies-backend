@@ -252,6 +252,8 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *            required:
  *              - group_id
  *              - bill_amount
+ *              - user_id_owner
+ *              - mode
  *            properties:
  *              group_id:
  *                type: integer
@@ -259,6 +261,12 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *              bill_amount:
  *                type: integer
  *                default: 200
+ *              user_id_owner:
+ *                type: integer
+ *                default: 1
+ *              mode:
+ *                type: string
+ *                default: equitative
  *     responses:
  *      200:
  *        description: OK

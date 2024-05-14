@@ -1,6 +1,7 @@
 const { Group, UserGroup, BillGroup} = require('../models/group');
 const { User } = require('../models/user');
 const { InviteNotification } = require('../models/notification');
+const { UserDebts } = require('../models/debts');
 
 async function getGroups(req, res) {
     const { id } = req.params;
@@ -130,7 +131,6 @@ async function getGroupMembers(req, res) {
 
 async function getGroupBills(req, res) {
     const { id } = req.params;
-    console.log("VAMOS NORA");
     try {
         const group = await Group.findByPk(id);
 
@@ -153,7 +153,7 @@ async function getGroupBills(req, res) {
 }
 
 async function addBillToGroup(req, res) {
-    const { group_id, bill_amount} = req.body;
+    const { group_id, bill_amount, user_id_owner, mode} = req.body;
 
     try {
         const selectedGroup = await Group.findByPk(group_id);
