@@ -2,6 +2,7 @@ const { Group, UserGroup, Payments} = require('../models/group');
 const { Debts } = require('../models/debts');
 const { Bill } = require('../models/bills');
 const { User } = require('../models/user');
+const { Category } = require('../models/category');
 const { InviteNotification } = require('../models/notification');
 
 async function getGroups(req, res) {
@@ -139,35 +140,21 @@ async function getGroupBills(req, res) {
             return res.status(404).json({ error: 'Group not found' });
         }
 
-        const users = await selectedGroup.getUsers();
-        if (!users) {
-            return res.status(404).json({ error: 'there is no user in that group' });
-        }
-
         const payments = await Bill.findAll({
-            where: { GroupId: id }, 
-            attributes: ['UserId', 'amount'] 
+            where: { GroupId: id },
+            include: [
+                { model: User },
+                { model: Category }
+            ]
         });
-
-        const userIds = payments.map(payment => payment.UserId);
-
-        const userNames = {};
-        users.forEach(user => {
-            if (userIds.includes(user.id)) {
-                userNames[user.id] = {
-                    first_name: user.first_name,
-                    last_name: user.last_name
-                };
-            }
-        });
-
-        const userPayments = payments.map(payment => ({
-            first_name: userNames[payment.UserId] ? userNames[payment.UserId].first_name : 'Unknown',
-            last_name: userNames[payment.UserId] ? userNames[payment.UserId].last_name : 'Unknown',
-            amount: payment.amount
+        const returnData = payments.map(payment => ({
+            first_name: payment.User.first_name,
+            last_name: payment.User.last_name,
+            amount: payment.amount,
+            category: payment.Category
         }));
         
-        res.status(200).json(userPayments);
+        res.status(200).json(returnData);
 
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -175,7 +162,7 @@ async function getGroupBills(req, res) {
 }
 
 async function addPaymentToGroup(req, res) {
-    const { group_id, bill_amount, user_id_owner, mode} = req.body;
+    const { group_id, bill_amount, user_id_owner, mode, category_id} = req.body;
 
     try {
         const selectedGroup = await Group.findByPk(group_id);
@@ -199,16 +186,23 @@ async function addPaymentToGroup(req, res) {
             return res.status(404).json({ error: 'there is no user in that group' });
         }
 
+        const category = await Category.findByPk(category_id);
+        if (!category) {
+            return res.status(404).json({ error: 'Category not found' });
+        }
+
         if (mode === "equitative") {
             const equitativeAmount = bill_amount / users.length;
             for (const user of users) {
                 if (user.id == user_id_owner) {
 
-                    await Bill.create({
+                    const bill = await Bill.create({
                         amount: bill_amount,
                         UserId: user_id_owner,
                         GroupId: group_id
                     });
+                    bill.setCategory(category);
+                    await bill.save();
 
                 } else {
 
