@@ -1,4 +1,6 @@
-const { Group, UserGroup, BillGroup} = require('../models/group');
+const { Group, UserGroup, Payments} = require('../models/group');
+const { Debts } = require('../models/debts');
+const { Bill } = require('../models/bills');
 const { User } = require('../models/user');
 const { InviteNotification } = require('../models/notification');
 
@@ -130,40 +132,98 @@ async function getGroupMembers(req, res) {
 
 async function getGroupBills(req, res) {
     const { id } = req.params;
-    console.log("VAMOS NORA");
     try {
-        const group = await Group.findByPk(id);
+        const selectedGroup = await Group.findByPk(id);
 
-        if (!group) {
+        if (!selectedGroup) {
             return res.status(404).json({ error: 'Group not found' });
         }
 
-        const billGroups = await BillGroup.findAll({
+        const users = await selectedGroup.getUsers();
+        if (!users) {
+            return res.status(404).json({ error: 'there is no user in that group' });
+        }
+
+        const payments = await Bill.findAll({
             where: { GroupId: id }, 
-            attributes: ['amount'] 
+            attributes: ['UserId', 'amount'] 
         });
 
-        const amounts = billGroups.map(billGroup => billGroup.amount);
+        const userIds = payments.map(payment => payment.UserId);
 
-        res.status(200).json(amounts);
+        const userNames = {};
+        users.forEach(user => {
+            if (userIds.includes(user.id)) {
+                userNames[user.id] = {
+                    first_name: user.first_name,
+                    last_name: user.last_name
+                };
+            }
+        });
+
+        const userPayments = payments.map(payment => ({
+            first_name: userNames[payment.UserId] ? userNames[payment.UserId].first_name : 'Unknown',
+            last_name: userNames[payment.UserId] ? userNames[payment.UserId].last_name : 'Unknown',
+            amount: payment.amount
+        }));
+        
+        res.status(200).json(userPayments);
 
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
 }
 
-async function addBillToGroup(req, res) {
-    const { group_id, bill_amount} = req.body;
+async function addPaymentToGroup(req, res) {
+    const { group_id, bill_amount, user_id_owner, mode} = req.body;
 
     try {
         const selectedGroup = await Group.findByPk(group_id);
         if (!selectedGroup) {
             return res.status(404).json({ error: 'Group not found' });
         }
-        const newBill = await BillGroup.create({ amount: bill_amount });
-        
-        await selectedGroup.addBillGroup(newBill);
-        res.status(201).json({ success: true, data: newBill });
+
+        const userGroupOwner = await UserGroup.findOne({
+            where: {
+                GroupId: selectedGroup.id,
+                UserId: user_id_owner
+            }
+        });
+    
+        if (!userGroupOwner) {
+            return res.status(404).json({ error: 'UserGroup not found' });
+        }
+
+        const users = await selectedGroup.getUsers();
+        if (!users) {
+            return res.status(404).json({ error: 'there is no user in that group' });
+        }
+
+        if (mode === "equitative") {
+            const equitativeAmount = bill_amount / users.length;
+            for (const user of users) {
+                if (user.id == user_id_owner) {
+
+                    await Bill.create({
+                        amount: bill_amount,
+                        UserId: user_id_owner,
+                        GroupId: group_id
+                    });
+
+                } else {
+
+                    await Debts.create({
+                        amount: equitativeAmount, 
+                        userFromId: user.id ,
+                        userToId : user_id_owner,
+                        groupId: group_id
+                    });
+
+                }
+            }
+        }
+
+        res.status(201).json({ success: true });
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
@@ -179,5 +239,5 @@ module.exports = {
     acceptGroupInvitation,
     getGroupMembers,
     getGroupBills,
-    addBillToGroup
+    addPaymentToGroup
 };

@@ -1,17 +1,24 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db');
 const { User } = require('./user');
+const { Group } = require('./group');
 
-const UserDebts = sequelize.define('UserDebts', {
+const Debts = sequelize.define('Debts', {
     amount: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.FLOAT,
         allowNull: false
     }
 }, {
-    tableName: 'user_debts',
+    tableName: 'debts',
 });
 
-User.hasOne(UserDebts);
+Debts.belongsTo(User, { as: 'UserFrom', foreignKey: 'userFromId' });
+Debts.belongsTo(User, { as: 'UserTo', foreignKey: 'userToId' });
+Debts.belongsTo(Group, { foreignKey: 'groupId' });
+
+User.hasMany(Debts, { foreignKey: 'userFromId', as: 'DebtsFrom' });
+User.hasMany(Debts, { foreignKey: 'userToId', as: 'DebtsTo' });
+
 module.exports = {
-    UserDebts
+    Debts
 }
