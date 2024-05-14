@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db');
 const { User } = require('./user');
-const { UserDebts } = require('./debts');
 
 const Group = sequelize.define('Group', {
     name: {
@@ -23,23 +22,10 @@ const UserGroup = sequelize.define('UserGroup', {
     }
 });
 
-const BillGroup = sequelize.define('BillGroup', {
-    amount: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-}, {
-    tableName: 'bill_groups',
-});
-
-Group.hasMany(BillGroup);
-BillGroup.hasMany(UserDebts);
-BillGroup.hasOne(User);
 Group.belongsToMany(User, { through: UserGroup });
 User.belongsToMany(Group, { through: UserGroup });
 
 module.exports = {
     Group,
-    UserGroup,
-    BillGroup,
+    UserGroup
 }

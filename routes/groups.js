@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup } = require('../controllers/groups');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addPaymentToGroup } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -239,7 +239,7 @@ router.put('/:id/integrant', acceptGroupInvitation);
  * '/groups/bill':
  *  post:
  *     tags:
- *     - Groups Controller
+ *     - Payments Controller
  *     summary: Create a bill for a group
  *     security:
  *     - bearerAuth: []
@@ -273,7 +273,7 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *      404:
  *        description: Resource not found
  */
- router.post('/bill', addBillToGroup);
+ router.post('/bill', addPaymentToGroup);
 
 
  /**
@@ -281,7 +281,7 @@ router.put('/:id/integrant', acceptGroupInvitation);
  * '/groups/{id}/bills':
  *  get:
  *     tags:
- *     - Groups Controller
+ *     - Payments Controller
  *     summary: Get all bills from a group
  *     security:
  *      - bearerAuth: []
