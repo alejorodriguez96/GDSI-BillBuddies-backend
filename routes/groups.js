@@ -1,6 +1,5 @@
 const express = require('express');
-const { Group } = require('../models/group');
-const { User } = require('../models/user');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addPaymentToGroup } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -31,19 +30,7 @@ const router = express.Router();
  *      500:
  *        description: Server Error
  */
-router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const group = await Group.findByPk(id);
-        if (!group) {
-            throw new Error('Group not found');
-        }
-        res.status(200).json(group);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
+router.get('/:id', getGroups);
 
 
 /**
@@ -63,16 +50,7 @@ router.get('/:id', async (req, res) => {
  *      500:
  *        description: Server Error
  */
-router.get('/', async (req, res) => {
-    const { user } = req;
-
-    try {
-        const groups = await user.getGroups();
-        res.status(200).json(groups);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.get('/', getAllGroups);
 
 
 /**
@@ -106,18 +84,7 @@ router.get('/', async (req, res) => {
  *      500:
  *        description: Server Error
  */
-router.post('/', async (req, res) => {
-    const { name } = req.body;
-
-    try {
-        const group = await Group.create({ name });
-        group.addUser(req.user);
-        await group.save();
-        res.status(201).json(group);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
+router.post('/', createGroup);
 
 /**
  * @openapi
@@ -142,11 +109,11 @@ router.post('/', async (req, res) => {
  *           schema:
  *            type: object
  *            required:
- *              - email
+ *              - userId
  *            properties:
- *              email:
+ *              userId:
  *                type: string
- *                default: johndoe@mail.com
+ *                default: 1
  *     responses:
  *      201:
  *        description: Created
@@ -157,27 +124,47 @@ router.post('/', async (req, res) => {
  *      500:
  *        description: Server Error
  */
- router.post('/:id/integrant', async (req, res) => {
-    const { id } = req.params;
-    const { email } = req.body;
+router.post('/:id/integrant', addGroupMember);
 
-    try {
-        const group = await Group.findByPk(id);
-        if (!group) {
-            throw new Error('Group not found');
-        }
-        const integrant = await User.findOne({ where: { email } });
-        if (!integrant) {
-            throw new Error('User not found');
-        }
-        group.addUser(integrant);
-        await group.save();
-
-        res.status(201).json(group);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
+/**
+ * @openapi
+ * '/groups/{id}/integrant':
+ *  put:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Accept or reject a group invitation
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - accept
+ *            properties:
+ *              accept:
+ *                type: string
+ *                default: true
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
+ *      500:
+ *        description: Server Error
+ */
+router.put('/:id/integrant', acceptGroupInvitation);
 
 /**
  * @openapi
@@ -217,26 +204,100 @@ router.post('/', async (req, res) => {
  *      500:
  *        description: Server Error
  */
- router.delete('/:id/integrant', async (req, res) => {
-    const { id } = req.params;
-    const { email } = req.body;
+ router.delete('/:id/integrant', removeGroupMember);
 
-    try {
-        const group = await Group.findByPk(id);
-        if (!group) {
-            throw new Error('Group not found');
-        }
-        const integrant = await User.findOne({ where: { email } });
-        if (!integrant) {
-            throw new Error('User not found');
-        }
-        group.removeUser(integrant);
-        await group.save();
+ /**
+ * @openapi
+ * '/groups/{id}/integrant':
+ *  get:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Get all integrants from a group
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
+ *      500:
+ *        description: Server Error
+ */
+ router.get('/:id/integrant', getGroupMembers);
 
-        res.status(201).json(group);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
+ /**
+ * @openapi
+ * '/groups/bill':
+ *  post:
+ *     tags:
+ *     - Payments Controller
+ *     summary: Create a bill for a group
+ *     security:
+ *     - bearerAuth: []
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - group_id
+ *              - bill_amount
+ *              - user_id_owner
+ *              - mode
+ *            properties:
+ *              group_id:
+ *                type: integer
+ *                default: 1
+ *              bill_amount:
+ *                type: integer
+ *                default: 200
+ *              user_id_owner:
+ *                type: integer
+ *                default: 1
+ *              mode:
+ *                type: string
+ *                default: equitative
+ *     responses:
+ *      200:
+ *        description: OK
+ *      404:
+ *        description: Resource not found
+ */
+ router.post('/bill', addPaymentToGroup);
+
+
+ /**
+ * @openapi
+ * '/groups/{id}/bills':
+ *  get:
+ *     tags:
+ *     - Payments Controller
+ *     summary: Get all bills from a group
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      404:
+ *        description: Resource not found
+ */
+ router.get('/:id/bills', getGroupBills);
 
 module.exports = router;
