@@ -8,7 +8,7 @@ async function sendVerificationEmail(user) {
     const subject = 'Bienvenid@ a BillBuddies!';
     let text = `Hola ${user.first_name}, nos encanta que formes parte de BillBuddies!<br><br>`;
     text += 'Para verificar tu cuenta, por favor haz click en el siguiente link:<br>';
-    text += `<a href="${process.env.FRONT_HOST}/register/verify/?token=${user.hash}">Verificar cuenta</a><br><br>`;
+    text += `<a href="${process.env.FRONT_HOST}/register/verify?token=${user.hash}">Verificar cuenta</a><br><br>`;
     text += 'Gracias por confiar en nosotros!';
     await sendEmail(email, subject, text, true);
 }
