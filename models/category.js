@@ -18,7 +18,7 @@ const Category = sequelize.define('Category', {
 });
 
 Bill.hasOne(Category);
-Category.belongsTo(Bill);
+Category.hasMany(Bill);
 
 module.exports = {
     Category
