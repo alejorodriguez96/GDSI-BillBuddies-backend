@@ -162,7 +162,9 @@ async function getGroupBills(req, res) {
 }
 
 async function addPaymentToGroup(req, res) {
-    const { group_id, bill_amount, user_id_owner, mode, category_id} = req.body;
+    const { group_id, bill_amount, mode, category_id} = req.body;
+    const { user } = req;
+    const user_id_owner = user.id;
 
     try {
         const selectedGroup = await Group.findByPk(group_id);
