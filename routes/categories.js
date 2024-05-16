@@ -8,7 +8,7 @@ const router = express.Router();
  * '/categories':
  *  get:
  *     tags:
- *     - Category Controller
+ *     - Categories Controller
  *     summary: Get all categories
  *     security:
  *      - bearerAuth: []
@@ -27,6 +27,49 @@ router.get('/', async (req, res) => {
     }
     catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @openapi
+ * '/categories':
+ *  post:
+ *     tags:
+ *     - Categories Controller
+ *     summary: Create a category
+ *     security:
+ *     - bearerAuth: []
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - name
+ *            properties:
+ *              name:
+ *                type: string
+ *                default: Food
+ *     responses:
+ *      201:
+ *        description: Created
+ *      400:
+ *        description: Bad Request
+ *      401:
+ *        description: Unauthorized
+ *      500:
+ *        description: Server Error
+ */
+router.post('/', async (req, res) => {
+    const { name } = req.body;
+
+    try {
+        const category = await Category.create({ name });
+        await category.save();
+        res.status(201).json(category);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 });
 

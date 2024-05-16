@@ -9,7 +9,7 @@ const router = express.Router();
  * '/register':
  *  post:
  *     tags:
- *     - User Controller
+ *     - Users Controller
  *     summary: Create a user
  *     requestBody:
  *      required: true
@@ -50,7 +50,7 @@ router.post('/', createUser);
  * '/register/verify':
  *  get:
  *     tags:
- *     - User Controller
+ *     - Users Controller
  *     summary: Verify a user
  *     parameters:
  *     - in: query

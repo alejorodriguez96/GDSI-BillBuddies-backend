@@ -3,7 +3,7 @@ const { Debts } = require('../models/debts');
 const { Bill } = require('../models/bills');
 const { User } = require('../models/user');
 const { Category } = require('../models/category');
-const { InviteNotification } = require('../models/notification');
+const { InviteNotification, DebtNotification } = require('../models/notification');
 
 async function getGroups(req, res) {
     const { id } = req.params;
@@ -192,6 +192,8 @@ async function addPaymentToGroup(req, res) {
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
+        
+        const userToPay = await User.findByPk(user_id_owner);
 
         if (mode === "equitative") {
             const equitativeAmount = bill_amount / users.length;
@@ -214,6 +216,8 @@ async function addPaymentToGroup(req, res) {
                         userToId : user_id_owner,
                         groupId: group_id
                     });
+
+                    await new DebtNotification(userToPay, equitativeAmount, selectedGroup, user).save();
 
                 }
             }
