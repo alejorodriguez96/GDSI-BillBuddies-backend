@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
  *  patch:
  *     tags:
  *     - Notifications Controller
- *     summary: 
+ *     summary: Update the notification status to readed
  *     security:
  *      - bearerAuth: []
  *     parameters:
