@@ -8,6 +8,7 @@ const groupsRoute = require('./routes/groups');
 const notificationsRoute = require('./routes/notifications');
 const userRoute = require('./routes/users');
 const categoryRoute = require('./routes/categories');
+const debtsRoute = require('./routes/debts');
 const authMiddleware = require('./middlewares/auth');
 const cors = require('cors');
 
@@ -25,6 +26,7 @@ app.use('/groups', authMiddleware, groupsRoute);
 app.use('/notifications', authMiddleware, notificationsRoute);
 app.use('/users', authMiddleware, userRoute);
 app.use('/categories', authMiddleware, categoryRoute);
+app.use('/debts', authMiddleware, debtsRoute);
 
 const PORT = process.env.NODE_PORT || 8081;
 app.listen(PORT, () => {

@@ -1,4 +1,4 @@
-const { Group, UserGroup, Payments} = require('../models/group');
+const { Group, UserGroup } = require('../models/group');
 const { Debts } = require('../models/debts');
 const { Bill } = require('../models/bills');
 const { User } = require('../models/user');
@@ -140,18 +140,18 @@ async function getGroupBills(req, res) {
             return res.status(404).json({ error: 'Group not found' });
         }
 
-        const payments = await Bill.findAll({
+        const bills = await Bill.findAll({
             where: { GroupId: id },
             include: [
                 { model: User },
                 { model: Category }
             ]
         });
-        const returnData = payments.map(payment => ({
-            first_name: payment.User.first_name,
-            last_name: payment.User.last_name,
-            amount: payment.amount,
-            category: payment.Category
+        const returnData = bills.map(bill => ({
+            first_name: bill.User.first_name,
+            last_name: bill.User.last_name,
+            amount: bill.amount,
+            category: bill.Category
         }));
         
         res.status(200).json(returnData);
@@ -161,7 +161,7 @@ async function getGroupBills(req, res) {
     }
 }
 
-async function addPaymentToGroup(req, res) {
+async function addBillToGroup(req, res) {
     const { group_id, bill_amount, mode, category_id} = req.body;
     const { user } = req;
     const user_id_owner = user.id;
@@ -239,5 +239,5 @@ module.exports = {
     acceptGroupInvitation,
     getGroupMembers,
     getGroupBills,
-    addPaymentToGroup
+    addBillToGroup
 };

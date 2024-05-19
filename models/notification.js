@@ -6,6 +6,7 @@ const e = require('express');
 const NOTIFICATION_TYPES = Object.freeze({
     NEW_GROUP: 'NEW_GROUP',
     PENDING_DEBT: 'PENDING_DEBT',
+    PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
 });
 
 const Notification = sequelize.define('Notification', {
@@ -58,9 +59,25 @@ class DebtNotification extends Notification {
     }
 }
 
+class PaymentNotification extends Notification {
+    constructor(payUser, amount, group, targetUserID) {
+        super();
+        this.message = `Recibiste un pago por $${amount} de ${payUser.first_name} ${payUser.last_name} en el grupo ${group.name}`;
+        this.type = NOTIFICATION_TYPES.PAYMENT_RECEIVED;
+        this.data = { 
+            groupId: group.id,
+            payUserId: payUser.id,
+            amount: amount,
+        };
+        this.read = false;
+        this.UserId = targetUserID;
+    }
+}
+
 module.exports = {
     Notification,
     NOTIFICATION_TYPES,
     InviteNotification,
     DebtNotification,
+    PaymentNotification,
 };
