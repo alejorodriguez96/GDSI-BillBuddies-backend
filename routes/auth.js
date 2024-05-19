@@ -9,7 +9,7 @@ const router = express.Router();
  * '/auth/login':
  *  post:
  *     tags:
- *     - User Controller
+ *     - Users Controller
  *     summary: Login a user
  *     requestBody:
  *      required: true

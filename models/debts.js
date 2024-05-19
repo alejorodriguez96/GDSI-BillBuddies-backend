@@ -7,6 +7,14 @@ const Debts = sequelize.define('Debts', {
     amount: {
         type: DataTypes.FLOAT,
         allowNull: false
+    },
+    amountPaid: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0
+    },
+    pending: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     }
 }, {
     tableName: 'debts',

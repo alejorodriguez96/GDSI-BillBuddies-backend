@@ -8,7 +8,7 @@ const router = express.Router();
  * '/users':
  *  get:
  *     tags:
- *     - User Controller
+ *     - Users Controller
  *     summary: Get all users
  *     security:
  *      - bearerAuth: []
