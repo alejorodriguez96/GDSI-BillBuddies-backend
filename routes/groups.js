@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup } = require('../controllers/groups');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup, getAllDebts } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -299,5 +299,31 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *        description: Resource not found
  */
  router.get('/:id/bills', getGroupBills);
+
+ /**
+ * @openapi
+ * '/groups/debts/{groupId}':
+*  get:
+ *     tags:
+ *     - Debts Controller
+ *     summary: Get all debts for a group
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: groupId
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
+ */
+router.get('/debts/:groupId', getAllDebts);
 
 module.exports = router;
