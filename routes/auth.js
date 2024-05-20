@@ -51,7 +51,8 @@ router.post('/login/', async (req, res) => {
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
-            hash: user.hash
+            hash: user.hash,
+            id: user.id
         };
         res.status(200).json(response);
     } catch (error) {
