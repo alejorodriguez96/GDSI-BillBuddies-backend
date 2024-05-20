@@ -229,6 +229,43 @@ async function addBillToGroup(req, res) {
     }
 }
 
+async function getAllDebts(req, res) {
+
+    const { groupId } = req.params; 
+
+    try {
+        const selectedGroup = await Group.findByPk(groupId);
+        if (!selectedGroup) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const debts = await Debts.findAll({
+            where: {
+                pending: true,
+                groupId: groupId
+            },
+            include: [
+                { model: User, as: 'UserFrom', attributes: ['id', 'first_name', 'last_name'] }, // Ajusta los atributos según lo que necesites
+                { model: User, as: 'UserTo', attributes: ['id', 'first_name', 'last_name'] }    // Ajusta los atributos según lo que necesites
+            ]
+        });
+
+        const result = debts.map(debt => ({
+            userFromId: debt.userFromId,
+            userToId: debt.userToId,
+            amountDebt: debt.amount - debt.amountPaid
+        }));
+    
+        res.status(200).json(result);
+
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+
+
+    console.log(groupId)
+}
+
 
 module.exports = {
     getGroups,
@@ -239,5 +276,6 @@ module.exports = {
     acceptGroupInvitation,
     getGroupMembers,
     getGroupBills,
-    addBillToGroup
+    addBillToGroup,
+    getAllDebts
 };
