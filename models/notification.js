@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db');
 const { User } = require('./user');
 const e = require('express');
+const { sendEmail } = require('../mailer');
 
 const NOTIFICATION_TYPES = Object.freeze({
     NEW_GROUP: 'NEW_GROUP',
@@ -41,6 +42,21 @@ class InviteNotification extends Notification {
         };
         this.read = false;
         this.UserId = targetUser.id;
+        this.sendMail(targetUser.email);
+    }
+
+    sendMail(userEmail) {
+        const subject = 'Te invitaron a un grupo';
+        let text = `${this.message}<br><br>`;
+        text += 'Puedes acceder al grupo haciendo click en el siguiente link:<br>';
+        text += `<a href="${process.env.FRONT_HOST}/groups/${this.data.groupId}">Ver grupo</a><br><br>`;
+
+        text += 'Gracias por confiar en nosotros!';
+        sendEmail(userEmail, subject, text, true).then(() => {
+            console.log('Email sent');
+        }).catch((error) => {
+            console.log('Error sending email', error);
+        });
     }
 }
 
