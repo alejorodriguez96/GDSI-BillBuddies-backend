@@ -253,7 +253,8 @@ async function getAllDebts(req, res) {
         const result = debts.map(debt => ({
             userFromId: debt.userFromId,
             userToId: debt.userToId,
-            amountDebt: debt.amount - debt.amountPaid
+            amountDebt: debt.amount - debt.amountPaid,
+            debtId: debt.id,
         }));
     
         res.status(200).json(result);
