@@ -50,7 +50,13 @@ router.get('/', async (req, res) => {
  *            properties:
  *              name:
  *                type: string
- *                default: Food
+ *                default: Gift
+ *              icon:
+ *                type: string
+ *                default: 🎁
+ *              color:
+ *                type: string
+ *                default: "#FF69B4"
  *     responses:
  *      201:
  *        description: Created
@@ -62,10 +68,10 @@ router.get('/', async (req, res) => {
  *        description: Server Error
  */
 router.post('/', async (req, res) => {
-    const { name } = req.body;
+    const { name, icon, color } = req.body;
 
     try {
-        const category = await Category.create({ name });
+        const category = await Category.create({ name, icon, color });
         await category.save();
         res.status(201).json(category);
     } catch (error) {
