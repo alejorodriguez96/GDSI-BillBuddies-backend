@@ -63,7 +63,7 @@ class InviteNotification extends Notification {
 class DebtNotification extends Notification {
     constructor(userToPay, amount, group, targetUser) {
         super();
-        this.message = `Tienes una deuda pendiente por $${amount} con ${userToPay.first_name} ${userToPay.last_name} en el grupo ${group.name}`;
+        this.message = `Tenes una deuda pendiente por $${amount} con ${userToPay.first_name} ${userToPay.last_name} en el grupo ${group.name}`;
         this.type = NOTIFICATION_TYPES.PENDING_DEBT;
         this.data = { 
             groupId: group.id,
@@ -72,6 +72,21 @@ class DebtNotification extends Notification {
         };
         this.read = false;
         this.UserId = targetUser.id;
+        this.sendMail(targetUser.email, group.name);
+    }
+
+    sendMail(userEmail, group) {
+        const subject = `Tenes una deuda pendiente en el grupo ${group}`;
+        let text = `${this.message}<br><br>`;
+        text += 'Puedes acceder al grupo haciendo click en el siguiente link:<br>';
+        text += `<a href="${process.env.FRONT_HOST}/groups/${this.data.groupId}">Ver grupo</a><br><br>`;
+
+        text += 'Gracias por confiar en nosotros!';
+        sendEmail(userEmail, subject, text, true).then(() => {
+            console.log('Email sent');
+        }).catch((error) => {
+            console.log('Error sending email', error);
+        });
     }
 }
 
