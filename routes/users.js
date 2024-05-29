@@ -78,6 +78,79 @@ router.get('/', async (req, res) => {
                 first_name: user.first_name,
                 last_name: user.last_name,
                 email: user.email,
+                phone: user.phone,
+                id: user.id,
+                hash: user.hash
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+ /**
+ * @openapi
+ * '/users/{id}':
+ *  patch:
+ *     tags:
+ *     - Users Controller
+ *     summary: Get a user by id
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - email
+ *              - first_name
+ *              - last_name
+ *              - password
+ *            properties:
+ *              first_name:
+ *                type: string
+ *                default: John
+ *              last_name:
+ *                type: string
+ *                default: Doe
+ *              phone:
+ *                type: string
+ *                default: 123456789
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: User id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      500:
+ *        description: Server Error
+ */
+ router.patch('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { first_name, last_name, phone } = req.body;
+    try {
+        const user = await User.findByPk(id);
+        if (user) {
+            user.first_name = first_name;
+            user.last_name = last_name;
+            user.phone = phone;
+            await user.save();
+            res.status(200).json({
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email,
+                phone: user.phone,
                 id: user.id,
                 hash: user.hash
             });

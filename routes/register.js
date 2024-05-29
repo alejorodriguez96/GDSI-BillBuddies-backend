@@ -32,6 +32,9 @@ const router = express.Router();
  *              last_name:
  *                type: string
  *                default: Doe
+ *              phone:
+ *                type: string
+ *                default: 123456789
  *              password:
  *                type: string
  *                default: johnDoe20!@
