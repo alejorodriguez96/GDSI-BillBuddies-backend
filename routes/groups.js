@@ -267,9 +267,29 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *              category_id:
  *                type: integer
  *                default: 1
+ *              debts_list:
+ *                type: array
+ *                description: Optional list of debts for fixed mode
+ *                items:
+ *                  type: object
+ *                  properties:
+ *                    id:
+ *                      type: integer
+ *                      description: User ID
+ *                      example: 1
+ *                    amount:
+ *                      type: number
+ *                      format: float
+ *                      description: Amount of debt
+ *                      example: 200.0
+ *                default:
+ *                  - id: 1
+ *                    amount: 200
  *     responses:
- *      200:
- *        description: OK
+ *      201:
+ *        description: Created
+ *      400:
+ *        description: Invalid mode or missing debts_list
  *      404:
  *        description: Resource not found
  */

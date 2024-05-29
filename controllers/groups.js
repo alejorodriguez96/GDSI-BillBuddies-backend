@@ -162,65 +162,23 @@ async function getGroupBills(req, res) {
 }
 
 async function addBillToGroup(req, res) {
-    const { group_id, bill_amount, mode, category_id} = req.body;
+    const { group_id, bill_amount, mode, category_id, debts_list} = req.body;
     const { user } = req;
     const user_id_owner = user.id;
 
     try {
-        const selectedGroup = await Group.findByPk(group_id);
-        if (!selectedGroup) {
-            return res.status(404).json({ error: 'Group not found' });
-        }
-
-        const userGroupOwner = await UserGroup.findOne({
-            where: {
-                GroupId: selectedGroup.id,
-                UserId: user_id_owner
-            }
-        });
-    
-        if (!userGroupOwner) {
-            return res.status(404).json({ error: 'UserGroup not found' });
-        }
-
-        const users = await selectedGroup.getUsers();
-        if (!users) {
-            return res.status(404).json({ error: 'there is no user in that group' });
-        }
-
-        const category = await Category.findByPk(category_id);
-        if (!category) {
-            return res.status(404).json({ error: 'Category not found' });
-        }
-        
-        const userToPay = await User.findByPk(user_id_owner);
+        const selectedGroup = await findGroupById(group_id);
+        const userGroupOwner = await findUserGroupOwner(selectedGroup.id, user_id_owner);
+        const users = await getUsersInGroup(selectedGroup);
+        const category = await findCategoryById(category_id);
+        const userToPay = await findUserById(user_id_owner);
 
         if (mode === "equitative") {
-            const equitativeAmount = bill_amount / users.length;
-            for (const user of users) {
-                if (user.id == user_id_owner) {
-
-                    const bill = await Bill.create({
-                        amount: bill_amount,
-                        UserId: user_id_owner,
-                        GroupId: group_id
-                    });
-                    bill.setCategory(category);
-                    await bill.save();
-
-                } else {
-
-                    await Debts.create({
-                        amount: equitativeAmount, 
-                        userFromId: user.id ,
-                        userToId : user_id_owner,
-                        groupId: group_id
-                    });
-
-                    await new DebtNotification(userToPay, equitativeAmount, selectedGroup, user).save();
-
-                }
-            }
+            await handleEquitativeMode(users, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup);
+        } else if (mode === "fixed" && debts_list) {
+            await handleFixedMode(debts_list, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup);
+        } else {
+            return res.status(400).json({ error: 'Invalid mode or missing debts_list' });
         }
 
         res.status(201).json({ success: true });
@@ -228,6 +186,112 @@ async function addBillToGroup(req, res) {
         res.status(404).json({ error: error.message });
     }
 }
+
+async function findGroupById(group_id) {
+    const group = await Group.findByPk(group_id);
+    if (!group) {
+        throw new Error('Group not found');
+    }
+    return group;
+}
+
+async function findUserGroupOwner(group_id, user_id_owner) {
+    const userGroupOwner = await UserGroup.findOne({
+        where: {
+            GroupId: group_id,
+            UserId: user_id_owner
+        }
+    });
+    if (!userGroupOwner) {
+        throw new Error('UserGroup not found');
+    }
+    return userGroupOwner;
+}
+
+async function getUsersInGroup(group) {
+    const users = await group.getUsers();
+    if (!users || users.length === 0) {
+        throw new Error('There are no users in that group');
+    }
+    return users;
+}
+
+async function findCategoryById(category_id) {
+    const category = await Category.findByPk(category_id);
+    if (!category) {
+        throw new Error('Category not found');
+    }
+    return category;
+}
+
+async function findUserById(user_id) {
+    const user = await User.findByPk(user_id);
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+}
+
+async function handleEquitativeMode(users, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup) {
+    const equitativeAmount = bill_amount / users.length;
+    for (const user of users) {
+        if (user.id === user_id_owner) {
+            const bill = await Bill.create({
+                amount: bill_amount,
+                UserId: user_id_owner,
+                GroupId: group_id
+            });
+            await bill.setCategory(category);
+            await bill.save();
+        } else {
+            await Debts.create({
+                amount: equitativeAmount,
+                userFromId: user.id,
+                userToId: user_id_owner,
+                groupId: group_id
+            });
+
+            await new DebtNotification(userToPay, equitativeAmount, selectedGroup, user).save();
+        }
+    }
+}
+
+async function handleFixedMode(debts_list, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup) {
+
+    const totalDebtsAmount = debts_list.reduce((sum, debt) => sum + debt.amount, 0);
+
+    const ownerDebt = debts_list.find(debt => debt.id === user_id_owner);
+    if (ownerDebt) {
+        if (totalDebtsAmount !== bill_amount) {
+            throw new Error('The sum of debts_list amounts must be equal to bill_amount.');
+        }
+    } else {
+        if (totalDebtsAmount > bill_amount) {
+            throw new Error('The sum of debts_list amounts cannot exceed bill_amount.');
+        }
+    }
+
+    const bill = await Bill.create({
+        amount: bill_amount,
+        UserId: user_id_owner,
+        GroupId: group_id
+    });
+    await bill.setCategory(category);
+    await bill.save();
+
+    for (const { id, amount } of debts_list) {
+        await Debts.create({
+            amount,
+            userFromId: id,
+            userToId: user_id_owner,
+            groupId: group_id
+        });
+
+        const userFrom = await findUserById(id);
+        await new DebtNotification(userToPay, amount, selectedGroup, userFrom).save();
+    }
+}
+
 
 async function getAllDebts(req, res) {
 
