@@ -78,7 +78,7 @@ router.get('/', async (req, res) => {
                 first_name: user.first_name,
                 last_name: user.last_name,
                 email: user.email,
-                phone: user.phone,
+                phone_number: user.phone,
                 id: user.id,
                 hash: user.hash
             });
@@ -138,19 +138,19 @@ router.get('/', async (req, res) => {
  */
  router.patch('/:id', async (req, res) => {
     const { id } = req.params;
-    const { first_name, last_name, phone } = req.body;
+    const { first_name, last_name, phone_number } = req.body;
     try {
         const user = await User.findByPk(id);
         if (user) {
             user.first_name = first_name;
             user.last_name = last_name;
-            user.phone = phone;
+            user.phone = phone_number;
             await user.save();
             res.status(200).json({
                 first_name: user.first_name,
                 last_name: user.last_name,
                 email: user.email,
-                phone: user.phone,
+                phone_number: user.phone,
                 id: user.id,
                 hash: user.hash
             });
