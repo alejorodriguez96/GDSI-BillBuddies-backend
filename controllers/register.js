@@ -14,7 +14,7 @@ async function sendVerificationEmail(user) {
 }
 
 async function createUser(req, res) {
-    const { email, password, first_name, last_name, phone } = req.body;
+    const { email, password, first_name, last_name, phone_number } = req.body;
     
     try {
         const avoidValidation = process.env.NODE_ENV !== 'prod' && email.endsWith('@dummy.com');
@@ -23,7 +23,7 @@ async function createUser(req, res) {
             email,
             first_name,
             last_name,
-            phone,
+            phone: phone_number,
             password: encryptedPassword,
             verified: avoidValidation
         });
@@ -34,7 +34,7 @@ async function createUser(req, res) {
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
-            phone: user.phone,
+            phone_number: user.phone,
             hash: user.hash,
             id: user.id
         };
