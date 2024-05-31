@@ -1,6 +1,7 @@
 const express = require('express');
 const { Debts } = require('../models/debts');
 const { Group } = require('../models/group');
+const { User } = require('../models/user');
 const { PaymentNotification } = require('../models/notification');
 const router = express.Router();
 
@@ -94,7 +95,8 @@ router.patch('/:id', async (req, res) => {
             await debt.update({ pending: false });
         }
         const group = await Group.findByPk(debt.groupId);
-        await new PaymentNotification(user, amount, group, debt.userToId).save();
+        const userToPay = await User.findByPk(debt.userToId);
+        await new PaymentNotification(user, amount, group, userToPay).save();
         res.status(200).json(debt);
     } catch (error) {
         res.status(500).json({ error: error.message });

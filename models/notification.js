@@ -91,7 +91,7 @@ class DebtNotification extends Notification {
 }
 
 class PaymentNotification extends Notification {
-    constructor(payUser, amount, group, targetUserID) {
+    constructor(payUser, amount, group, targetUser) {
         super();
         this.message = `Recibiste un pago por $${amount} de ${payUser.first_name} ${payUser.last_name} en el grupo ${group.name}`;
         this.type = NOTIFICATION_TYPES.PAYMENT_RECEIVED;
@@ -101,7 +101,22 @@ class PaymentNotification extends Notification {
             amount: amount,
         };
         this.read = false;
-        this.UserId = targetUserID;
+        this.UserId = targetUser.id;
+        this.sendMail(targetUser.email, payUser);
+    }
+
+    sendMail(userEmail, from) {
+        const subject = `Recibiste un pago de ${from.first_name} ${from.last_name}`;
+        let text = `${this.message}<br><br>`;
+        text += 'Puedes acceder al grupo haciendo click en el siguiente link:<br>';
+        text += `<a href="${process.env.FRONT_HOST}/groups/${this.data.groupId}">Ver grupo</a><br><br>`;
+
+        text += 'Gracias por confiar en nosotros!';
+        sendEmail(userEmail, subject, text, true).then(() => {
+            console.log('Email sent');
+        }).catch((error) => {
+            console.log('Error sending email', error);
+        });
     }
 }
 
