@@ -32,6 +32,15 @@ const User = sequelize.define('User', {
     tableName: 'users',
 });
 
+async function findUserById(user_id) {
+    const user = await User.findByPk(user_id);
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+}
+
 module.exports = {
-    User
+    User,
+    findUserById
 }

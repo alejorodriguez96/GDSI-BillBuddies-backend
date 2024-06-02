@@ -20,6 +20,15 @@ const Category = sequelize.define('Category', {
 Bill.belongsTo(Category);
 Category.hasMany(Bill);
 
+async function findCategoryById(category_id) {
+    const category = await Category.findByPk(category_id);
+    if (!category) {
+        throw new Error('Category not found');
+    }
+    return category;
+}
+
 module.exports = {
-    Category
+    Category,
+    findCategoryById
 }
