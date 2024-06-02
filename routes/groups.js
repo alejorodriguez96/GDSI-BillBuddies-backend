@@ -285,6 +285,38 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *                default:
  *                  - id: 1
  *                    amount: 200
+ *           examples:
+ *             equitativeExample:
+ *               summary: Example with equitative mode
+ *               value:
+ *                 group_id: 1
+ *                 bill_amount: 200.0
+ *                 mode: equitative
+ *                 category_id: 1
+ *             fixedExample:
+ *               summary: Example with fixed mode
+ *               value:
+ *                 group_id: 1
+ *                 bill_amount: 300.0
+ *                 mode: fixed
+ *                 category_id: 2
+ *                 debts_list:
+ *                   - id: 1
+ *                     amount: 150.0
+ *                   - id: 2
+ *                     amount: 150.0
+ *             percentageExample:
+ *               summary: Example with percentage mode
+ *               value:
+ *                 group_id: 1
+ *                 bill_amount: 400.0
+ *                 mode: percentage
+ *                 category_id: 3
+ *                 debts_list:
+ *                   - id: 1
+ *                     amount: 40
+ *                   - id: 2
+ *                     amount: 60
  *     responses:
  *      201:
  *        description: Created
