@@ -9,6 +9,7 @@ const notificationsRoute = require('./routes/notifications');
 const userRoute = require('./routes/users');
 const categoryRoute = require('./routes/categories');
 const debtsRoute = require('./routes/debts');
+const dashboardRoute = require('./routes/dashboards');
 const authMiddleware = require('./middlewares/auth');
 const cors = require('cors');
 
@@ -27,6 +28,7 @@ app.use('/notifications', authMiddleware, notificationsRoute);
 app.use('/users', authMiddleware, userRoute);
 app.use('/categories', authMiddleware, categoryRoute);
 app.use('/debts', authMiddleware, debtsRoute);
+app.use('/dashboards', authMiddleware, dashboardRoute);
 
 const PORT = process.env.NODE_PORT || 8081;
 app.listen(PORT, () => {
