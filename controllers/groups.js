@@ -1,8 +1,8 @@
-const { Group, UserGroup } = require('../models/group');
+const { Group, UserGroup , findUserGroupOwner, findGroupById, getUsersInGroup} = require('../models/group');
 const { Debts } = require('../models/debts');
 const { Bill } = require('../models/bills');
-const { User } = require('../models/user');
-const { Category } = require('../models/category');
+const { User, findUserById } = require('../models/user');
+const { Category, findCategoryById } = require('../models/category');
 const { InviteNotification, DebtNotification } = require('../models/notification');
 
 async function getGroups(req, res) {
@@ -187,51 +187,6 @@ async function addBillToGroup(req, res) {
     }
 }
 
-async function findGroupById(group_id) {
-    const group = await Group.findByPk(group_id);
-    if (!group) {
-        throw new Error('Group not found');
-    }
-    return group;
-}
-
-async function findUserGroupOwner(group_id, user_id_owner) {
-    const userGroupOwner = await UserGroup.findOne({
-        where: {
-            GroupId: group_id,
-            UserId: user_id_owner
-        }
-    });
-    if (!userGroupOwner) {
-        throw new Error('UserGroup not found');
-    }
-    return userGroupOwner;
-}
-
-async function getUsersInGroup(group) {
-    const users = await group.getUsers();
-    if (!users || users.length === 0) {
-        throw new Error('There are no users in that group');
-    }
-    return users;
-}
-
-async function findCategoryById(category_id) {
-    const category = await Category.findByPk(category_id);
-    if (!category) {
-        throw new Error('Category not found');
-    }
-    return category;
-}
-
-async function findUserById(user_id) {
-    const user = await User.findByPk(user_id);
-    if (!user) {
-        throw new Error('User not found');
-    }
-    return user;
-}
-
 async function handleEquitativeMode(users, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup) {
     const equitativeAmount = bill_amount / users.length;
     for (const user of users) {
@@ -280,15 +235,17 @@ async function handleFixedMode(debts_list, bill_amount, user_id_owner, group_id,
     await bill.save();
 
     for (const { id, amount } of debts_list) {
-        await Debts.create({
-            amount,
-            userFromId: id,
-            userToId: user_id_owner,
-            groupId: group_id
-        });
-
-        const userFrom = await findUserById(id);
-        await new DebtNotification(userToPay, amount, selectedGroup, userFrom).save();
+        if (id !==  user_id_owner) {
+            await Debts.create({
+                amount,
+                userFromId: id,
+                userToId: user_id_owner,
+                groupId: group_id
+            });
+    
+            const userFrom = await findUserById(id);
+            await new DebtNotification(userToPay, amount, selectedGroup, userFrom).save();
+        }        
     }
 }
 
