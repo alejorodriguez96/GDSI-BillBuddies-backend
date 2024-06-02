@@ -168,7 +168,7 @@ async function addBillToGroup(req, res) {
 
     try {
         const selectedGroup = await findGroupById(group_id);
-        const userGroupOwner = await findUserGroupOwner(selectedGroup.id, user_id_owner);
+        await findUserGroupOwner(selectedGroup.id, user_id_owner);
         const users = await getUsersInGroup(selectedGroup);
         const category = await findCategoryById(category_id);
         const userToPay = await findUserById(user_id_owner);
@@ -177,6 +177,8 @@ async function addBillToGroup(req, res) {
             await handleEquitativeMode(users, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup);
         } else if (mode === "fixed" && debts_list) {
             await handleFixedMode(debts_list, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup);
+        } else if (mode === "percentage" && debts_list) {
+            await handlePercentageMode(debts_list, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup);
         } else {
             return res.status(400).json({ error: 'Invalid mode or missing debts_list' });
         }
@@ -238,6 +240,45 @@ async function handleFixedMode(debts_list, bill_amount, user_id_owner, group_id,
         if (id !==  user_id_owner) {
             await Debts.create({
                 amount,
+                userFromId: id,
+                userToId: user_id_owner,
+                groupId: group_id
+            });
+    
+            const userFrom = await findUserById(id);
+            await new DebtNotification(userToPay, amount, selectedGroup, userFrom).save();
+        }        
+    }
+}
+
+async function handlePercentageMode(debts_list, bill_amount, user_id_owner, group_id, category, userToPay, selectedGroup) {
+
+    const totalPercentageDebtsAmount = debts_list.reduce((sum, debt) => sum + debt.amount, 0);
+
+    const ownerDebt = debts_list.find(debt => debt.id === user_id_owner);
+    if (ownerDebt) {
+        if (totalPercentageDebtsAmount !== 100) {
+            throw new Error('The sum of debts_list amounts must be equal to 100% with the owner');
+        }
+    } else {
+        if (totalPercentageDebtsAmount > 100) {
+            throw new Error('The sum of the debts_list percentages cannot exceed 100%');
+        }
+    }
+
+    const bill = await Bill.create({
+        amount: bill_amount,
+        UserId: user_id_owner,
+        GroupId: group_id
+    });
+    await bill.setCategory(category);
+    await bill.save();
+
+    for (const { id, amount } of debts_list) {
+        if (id !==  user_id_owner) {
+
+            await Debts.create({
+                amount: bill_amount * amount / 100,
                 userFromId: id,
                 userToId: user_id_owner,
                 groupId: group_id
