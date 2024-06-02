@@ -18,6 +18,7 @@
   "homepage": "https://github.com/alejorodriguez96/GDSI-BillBuddies-backend#readme",
   "dependencies": {
     "@cucumber/cucumber": "^10.6.0",
+    "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.19.2",
