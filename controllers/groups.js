@@ -276,16 +276,17 @@ async function handlePercentageMode(debts_list, bill_amount, user_id_owner, grou
 
     for (const { id, amount } of debts_list) {
         if (id !==  user_id_owner) {
+            total_amount  = bill_amount * amount / 100;
 
             await Debts.create({
-                amount: bill_amount * amount / 100,
+                amount: total_amount,
                 userFromId: id,
                 userToId: user_id_owner,
                 groupId: group_id
             });
     
             const userFrom = await findUserById(id);
-            await new DebtNotification(userToPay, amount, selectedGroup, userFrom).save();
+            await new DebtNotification(userToPay, total_amount, selectedGroup, userFrom).save();
         }        
     }
 }

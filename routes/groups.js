@@ -299,7 +299,7 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *                 group_id: 1
  *                 bill_amount: 300.0
  *                 mode: fixed
- *                 category_id: 2
+ *                 category_id: 1
  *                 debts_list:
  *                   - id: 1
  *                     amount: 150.0
@@ -311,7 +311,7 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *                 group_id: 1
  *                 bill_amount: 400.0
  *                 mode: percentage
- *                 category_id: 3
+ *                 category_id: 1
  *                 debts_list:
  *                   - id: 1
  *                     amount: 40
