@@ -235,4 +235,48 @@ router.get('/', async (req, res) => {
     }
 });
 
+ /**
+ * @openapi
+ * '/users/{id}/config':
+ *  get:
+ *     tags:
+ *     - Users Controller
+ *     summary: Get user configuration
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: User id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      500:
+ *        description: Server Error
+ */
+ router.get('/:id/config', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await User.findByPk(id);
+        if (user) {
+            const configs = await UserConfig.findAll({ where: { UserId: user.id } });
+            const response = configs.reduce((acc, config) => {
+                acc[config.config_key] = config.config_value;
+                return acc;
+            }, {});
+            res.status(200).json(response);
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
