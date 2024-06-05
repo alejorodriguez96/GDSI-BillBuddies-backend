@@ -3,6 +3,7 @@ const { Debts } = require('../models/debts');
 const { Group } = require('../models/group');
 const { User } = require('../models/user');
 const { PaymentNotification } = require('../models/notification');
+const { UserConfig } = require('../models/user_configs');
 const router = express.Router();
 
 /**
@@ -96,7 +97,13 @@ router.patch('/:id', async (req, res) => {
         }
         const group = await Group.findByPk(debt.groupId);
         const userToPay = await User.findByPk(debt.userToId);
-        await new PaymentNotification(user, amount, group, userToPay).save();
+        const notificationConfig = UserConfig.findOne({ where: { UserId: userToPay.id, config_key: "allowNotifications" } });
+        const showNotification = notificationConfig ? notificationConfig.config_value === 'true' : true;
+        if (showNotification){
+            const emailNotificactionConfig = UserConfig.findOne({ where: { UserId: userToPay.id, config_key: "allowEmailNotifications" } });
+            const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
+            await new PaymentNotification(user, amount, group, userToPay, sendEmail).save();
+        }
         res.status(200).json(debt);
     } catch (error) {
         res.status(500).json({ error: error.message });

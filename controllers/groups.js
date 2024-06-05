@@ -4,6 +4,7 @@ const { Bill } = require('../models/bills');
 const { User, findUserById } = require('../models/user');
 const { Category, findCategoryById } = require('../models/category');
 const { InviteNotification, DebtNotification } = require('../models/notification');
+const { UserConfig } = require('../models/user_configs');
 
 async function getGroups(req, res) {
     const { id } = req.params;
@@ -59,7 +60,13 @@ async function addGroupMember(req, res) {
         }
         await group.addUser(integrant);
         await group.save();
-        await new InviteNotification(user, group, integrant).save();
+        const notificationConfig = UserConfig.findOne({ where: { UserId: integrant.id, config_key: "allowNotifications" } });
+        const showNotification = notificationConfig ? notificationConfig.config_value === 'true' : true;
+        if (showNotification){
+            const emailNotificactionConfig = UserConfig.findOne({ where: { UserId: integrant.id, config_key: "allowEmailNotifications" } });
+            const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
+            await new InviteNotification(user, group, integrant, sendEmail).save();
+        }
 
         res.status(201).json(group);
     } catch (error) {
@@ -207,8 +214,7 @@ async function handleEquitativeMode(users, bill_amount, user_id_owner, group_id,
                 userToId: user_id_owner,
                 groupId: group_id
             });
-
-            await new DebtNotification(userToPay, equitativeAmount, selectedGroup, user).save();
+            await handleDebtNotification(userToPay, equitativeAmount, selectedGroup, user);
         }
     }
 }
@@ -246,8 +252,18 @@ async function handleFixedMode(debts_list, bill_amount, user_id_owner, group_id,
             });
     
             const userFrom = await findUserById(id);
-            await new DebtNotification(userToPay, amount, selectedGroup, userFrom).save();
+            await handleDebtNotification(userToPay, amount, selectedGroup, userFrom);
         }        
+    }
+}
+
+async function handleDebtNotification(userToPay, amount, selectedGroup, userFrom) {
+    const notificationConfig = UserConfig.findOne({ where: { UserId: userFrom.id, config_key: "allowNotifications" } });
+    const showNotification = notificationConfig ? notificationConfig.config_value === 'true' : true;
+    if (showNotification){
+        const emailNotificactionConfig = UserConfig.findOne({ where: { UserId: userFrom.id, config_key: "allowEmailNotifications" } });
+        const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
+        await new DebtNotification(userToPay, amount, selectedGroup, userFrom, sendEmail).save();
     }
 }
 
@@ -286,7 +302,7 @@ async function handlePercentageMode(debts_list, bill_amount, user_id_owner, grou
             });
     
             const userFrom = await findUserById(id);
-            await new DebtNotification(userToPay, total_amount, selectedGroup, userFrom).save();
+            await handleDebtNotification(userToPay, total_amount, selectedGroup, userFrom);
         }        
     }
 }

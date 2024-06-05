@@ -32,7 +32,7 @@ Notification.belongsTo(User);
 User.hasMany(Notification);
 
 class InviteNotification extends Notification {
-    constructor(inviter, group, targetUser) {
+    constructor(inviter, group, targetUser, shouldSendEmail = true) {
         super();
         this.message = `${inviter.first_name} ${inviter.last_name} te invitó a unirte al grupo ${group.name}`;
         this.type = NOTIFICATION_TYPES.NEW_GROUP;
@@ -42,7 +42,9 @@ class InviteNotification extends Notification {
         };
         this.read = false;
         this.UserId = targetUser.id;
-        this.sendMail(targetUser.email);
+        if (shouldSendEmail) {
+            this.sendMail(targetUser.email);
+        }
     }
 
     sendMail(userEmail) {
@@ -61,7 +63,7 @@ class InviteNotification extends Notification {
 }
 
 class DebtNotification extends Notification {
-    constructor(userToPay, amount, group, targetUser) {
+    constructor(userToPay, amount, group, targetUser, shouldSendEmail = true) {
         super();
         this.message = `Tenes una deuda pendiente por $${amount} con ${userToPay.first_name} ${userToPay.last_name} en el grupo ${group.name}`;
         this.type = NOTIFICATION_TYPES.PENDING_DEBT;
@@ -72,7 +74,9 @@ class DebtNotification extends Notification {
         };
         this.read = false;
         this.UserId = targetUser.id;
-        this.sendMail(targetUser.email, group.name);
+        if (shouldSendEmail) {
+            this.sendMail(targetUser.email, group.name);
+        }
     }
 
     sendMail(userEmail, group) {
@@ -91,7 +95,7 @@ class DebtNotification extends Notification {
 }
 
 class PaymentNotification extends Notification {
-    constructor(payUser, amount, group, targetUser) {
+    constructor(payUser, amount, group, targetUser, shouldSendEmail = true) {
         super();
         this.message = `Recibiste un pago por $${amount} de ${payUser.first_name} ${payUser.last_name} en el grupo ${group.name}`;
         this.type = NOTIFICATION_TYPES.PAYMENT_RECEIVED;
@@ -102,7 +106,9 @@ class PaymentNotification extends Notification {
         };
         this.read = false;
         this.UserId = targetUser.id;
-        this.sendMail(targetUser.email, payUser);
+        if (shouldSendEmail) {
+            this.sendMail(targetUser.email, payUser);
+        }
     }
 
     sendMail(userEmail, from) {
