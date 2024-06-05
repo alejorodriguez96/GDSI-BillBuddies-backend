@@ -1,6 +1,7 @@
 const express = require('express');
 const { User } = require('../models/user');
 const { hash } = require('bcrypt');
+const { UserConfig } = require('../models/user_configs');
 const router = express.Router();
 
 
@@ -163,5 +164,75 @@ router.get('/', async (req, res) => {
     }
 });
 
+
+ /**
+ * @openapi
+ * '/users/{id}/config':
+ *  put:
+ *     tags:
+ *     - Users Controller
+ *     summary: Modify user configuration
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - allowNotifications
+ *              - allowEmailNotifications
+ *            properties:
+ *              allowNotifications:
+ *                type: boolean
+ *                default: true
+ *              allowEmailNotifications:
+ *                type: boolean
+ *                default: true
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: User id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      500:
+ *        description: Server Error
+ */
+ router.put('/:id/config', async (req, res) => {
+    const { id } = req.params;
+    const { allowNotifications, allowEmailNotifications } = req.body;
+    const keysToUpdate = ['allowNotifications', 'allowEmailNotifications'];
+    try {
+        const user = await User.findByPk(id);
+        if (user) {
+            for (let i = 0; i < keysToUpdate.length; i++) {
+                const key = keysToUpdate[i];
+                const config = await UserConfig.findOne({ where: { UserId: user.id, config_key: key } });
+                if (!config) {
+                    await UserConfig.create({ UserId: user.id, config_key: key, config_value: req.body[key] });
+                    continue;
+                }
+                config.config_value = req.body[key];
+                await config.save();
+            }
+            res.status(200).json({
+                allowNotifications,
+                allowEmailNotifications
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;

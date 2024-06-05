@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const { User } = require('../models/user');
 const md5 = require('md5');
 const { sendEmail } = require('../mailer');
+const { createInitialUserConfig } = require('../models/user_configs');
 
 async function sendVerificationEmail(user) {
     const email = user.email;
@@ -41,6 +42,7 @@ async function createUser(req, res) {
         if (!avoidValidation) {
             await sendVerificationEmail(user);
         }
+        await createInitialUserConfig(user.id);
         res.status(201).json(response);
     } catch (error) {
         res.status(400).json({ error: error.message });
