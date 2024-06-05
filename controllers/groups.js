@@ -60,14 +60,14 @@ async function addGroupMember(req, res) {
         }
         await group.addUser(integrant);
         await group.save();
-        const notificationConfig = UserConfig.findOne({ where: { UserId: integrant.id, config_key: "allowNotifications" } });
+        const notificationConfig = await UserConfig.findOne({ where: { UserId: integrant.id, config_key: "allowNotifications" } });
         const showNotification = notificationConfig ? notificationConfig.config_value === 'true' : true;
-        if (showNotification){
-            const emailNotificactionConfig = UserConfig.findOne({ where: { UserId: integrant.id, config_key: "allowEmailNotifications" } });
-            const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
-            await new InviteNotification(user, group, integrant, sendEmail).save();
+        const emailNotificactionConfig = await UserConfig.findOne({ where: { UserId: integrant.id, config_key: "allowEmailNotifications" } });
+        const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
+        const notif = new InviteNotification(user, group, integrant, sendEmail);
+        if (showNotification) {
+            await notif.save();
         }
-
         res.status(201).json(group);
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -258,12 +258,13 @@ async function handleFixedMode(debts_list, bill_amount, user_id_owner, group_id,
 }
 
 async function handleDebtNotification(userToPay, amount, selectedGroup, userFrom) {
-    const notificationConfig = UserConfig.findOne({ where: { UserId: userFrom.id, config_key: "allowNotifications" } });
+    const notificationConfig = await UserConfig.findOne({ where: { UserId: userFrom.id, config_key: "allowNotifications" } });
     const showNotification = notificationConfig ? notificationConfig.config_value === 'true' : true;
-    if (showNotification){
-        const emailNotificactionConfig = UserConfig.findOne({ where: { UserId: userFrom.id, config_key: "allowEmailNotifications" } });
-        const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
-        await new DebtNotification(userToPay, amount, selectedGroup, userFrom, sendEmail).save();
+    const emailNotificactionConfig = await UserConfig.findOne({ where: { UserId: userFrom.id, config_key: "allowEmailNotifications" } });
+    const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
+    const notif = new DebtNotification(userToPay, amount, selectedGroup, userFrom, sendEmail);
+    if (showNotification) {
+        await notif.save();
     }
 }
 

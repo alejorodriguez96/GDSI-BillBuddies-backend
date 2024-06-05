@@ -97,12 +97,13 @@ router.patch('/:id', async (req, res) => {
         }
         const group = await Group.findByPk(debt.groupId);
         const userToPay = await User.findByPk(debt.userToId);
-        const notificationConfig = UserConfig.findOne({ where: { UserId: userToPay.id, config_key: "allowNotifications" } });
+        const notificationConfig = await UserConfig.findOne({ where: { UserId: userToPay.id, config_key: "allowNotifications" } });
         const showNotification = notificationConfig ? notificationConfig.config_value === 'true' : true;
-        if (showNotification){
-            const emailNotificactionConfig = UserConfig.findOne({ where: { UserId: userToPay.id, config_key: "allowEmailNotifications" } });
-            const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
-            await new PaymentNotification(user, amount, group, userToPay, sendEmail).save();
+        const emailNotificactionConfig = await UserConfig.findOne({ where: { UserId: userToPay.id, config_key: "allowEmailNotifications" } });
+        const sendEmail = emailNotificactionConfig ? emailNotificactionConfig.config_value === 'true' : true;
+        const notif = new PaymentNotification(user, amount, group, userToPay, sendEmail)
+        if (showNotification) {
+            await notif.save();
         }
         res.status(200).json(debt);
     } catch (error) {
