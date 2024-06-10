@@ -1,4 +1,4 @@
-const { Group, UserGroup , findUserGroupOwner, findGroupById, getUsersInGroup} = require('../models/group');
+const { Group, UserGroup , findUserGroupOwner, findGroupById, getUsersInGroup } = require('../models/group');
 const { Debts } = require('../models/debts');
 const { Bill } = require('../models/bills');
 const { User, findUserById } = require('../models/user');
@@ -133,6 +133,28 @@ async function getGroupMembers(req, res) {
         }
         const members = await group.getUsers();
         res.status(200).json(members); 
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+}
+
+async function setGroupAsFavorite(req, res) {
+    const { id } = req.params;
+    const { user } = req;
+
+    try {
+        const group = await Group.findByPk(id);
+        if (!group) {
+            throw new Error('Group not found');
+        }
+        const userGroup = await UserGroup.findOne({ where: { GroupId: group.id, UserId: user.id } });
+        if (!userGroup) {
+            throw new Error('User not found in group');
+        }
+        userGroup.favorite = !userGroup.favorite;
+        await userGroup.save();
+
+        res.status(200).json(group);
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
@@ -366,5 +388,6 @@ module.exports = {
     getGroupMembers,
     getGroupBills,
     addBillToGroup,
-    getAllDebts
+    getAllDebts,
+    setGroupAsFavorite
 };
