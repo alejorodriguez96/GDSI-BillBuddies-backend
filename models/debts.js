@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db');
 const { User } = require('./user');
 const { Group } = require('./group');
+const { Bill } = require('./bills');
 
 const Debts = sequelize.define('Debts', {
     amount: {
@@ -23,6 +24,7 @@ const Debts = sequelize.define('Debts', {
 Debts.belongsTo(User, { as: 'UserFrom', foreignKey: 'userFromId' });
 Debts.belongsTo(User, { as: 'UserTo', foreignKey: 'userToId' });
 Debts.belongsTo(Group, { foreignKey: 'groupId' });
+Debts.belongsTo(Bill, { foreignKey: 'billId' });
 
 User.hasMany(Debts, { foreignKey: 'userFromId', as: 'DebtsFrom' });
 User.hasMany(Debts, { foreignKey: 'userToId', as: 'DebtsTo' });

@@ -8,6 +8,14 @@ const Bill = sequelize.define('Bill', {
         type: DataTypes.FLOAT,
         allowNull: false
     },
+    pendingDebts: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    paidOff: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    }
 }, {
     tableName: 'bills',
 });
