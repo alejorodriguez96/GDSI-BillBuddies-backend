@@ -2,6 +2,7 @@ const express = require('express');
 const { Debts } = require('../models/debts');
 const { Group } = require('../models/group');
 const { User } = require('../models/user');
+const { Bill } = require('../models/bills');
 const { PaymentNotification } = require('../models/notification');
 const { UserConfig } = require('../models/user_configs');
 const router = express.Router();
@@ -94,6 +95,11 @@ router.patch('/:id', async (req, res) => {
         await debt.update({ amountPaid: debt.amountPaid + amount });
         if (debt.amount == debt.amountPaid) {
             await debt.update({ pending: false });
+            const bill = await Bill.findByPk(debt.billId);
+            await bill.update({ pendingDebts: bill.pendingDebts - 1 });
+            if (bill.pendingDebts == 0) {
+                await bill.update({ paidOff: true });
+            }
         }
         const group = await Group.findByPk(debt.groupId);
         const userToPay = await User.findByPk(debt.userToId);
