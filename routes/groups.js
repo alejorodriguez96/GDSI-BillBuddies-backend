@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup, getAllDebts } = require('../controllers/groups');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup, getAllDebts, setGroupAsFavorite } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -32,6 +32,33 @@ const router = express.Router();
  */
 router.get('/:id', getGroups);
 
+/**
+ * @openapi
+ * '/groups/{id}':
+ *  patch:
+ *     tags:
+ *     - Groups Controller
+ *     summary: Change group favorite status
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      401:
+ *        description: Unauthorized
+ *      404:
+ *        description: Resource not found
+ *      500:
+ *        description: Server Error
+ */
+ router.patch('/:id', setGroupAsFavorite);
 
 /**
  * @openapi
@@ -51,7 +78,6 @@ router.get('/:id', getGroups);
  *        description: Server Error
  */
 router.get('/', getAllGroups);
-
 
 /**
  * @openapi
