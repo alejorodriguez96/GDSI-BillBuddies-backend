@@ -2,7 +2,7 @@ const { Group, UserGroup , findUserGroupOwner, findGroupById, getUsersInGroup } 
 const { Debts } = require('../models/debts');
 const { Bill } = require('../models/bills');
 const { User, findUserById } = require('../models/user');
-const { Category, findCategoryById } = require('../models/category');
+const { Category, findCategoryById, setDefaultCategories } = require('../models/category');
 const { InviteNotification, DebtNotification } = require('../models/notification');
 const { UserConfig } = require('../models/user_configs');
 
@@ -38,6 +38,7 @@ async function createGroup(req, res) {
     try {
         const group = await Group.create({ name });
         group.addUser(req.user, { through: { accepted: true } });
+        await setDefaultCategories(group);
         await group.save();
         res.status(201).json(group);
     } catch (error) {
@@ -158,6 +159,43 @@ async function setGroupAsFavorite(req, res) {
         res.status(200).json(group);
     } catch (error) {
         res.status(404).json({ error: error.message });
+    }
+}
+
+async function getGroupCategories(req, res) {
+    const { id } = req.params;
+    try {
+        const selectedGroup = await Group.findByPk(id);
+
+        if (!selectedGroup) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const categories = await selectedGroup.getCategories();
+
+        res.status(200).json(categories);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+async function addCategoryToGroup(req, res) {
+    const { id } = req.params;
+    const { name, icon, color } = req.body;
+
+    try {
+        const selectedGroup = await Group.findByPk(id);
+        if (!selectedGroup) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+        const category = await Category.create({ name, icon, color });
+        await category.save();
+        await selectedGroup.addCategory(category);
+        await selectedGroup.save();
+        res.status(201).json(category);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 }
 
@@ -390,5 +428,7 @@ module.exports = {
     getGroupBills,
     addBillToGroup,
     getAllDebts,
-    setGroupAsFavorite
+    setGroupAsFavorite,
+    getGroupCategories,
+    addCategoryToGroup
 };
