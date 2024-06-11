@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db');
 const { Bill } = require('./bills');
+const { Group } = require('./group');
 
 const Category = sequelize.define('Category', {
     name: {
@@ -19,6 +20,8 @@ const Category = sequelize.define('Category', {
 
 Bill.belongsTo(Category);
 Category.hasMany(Bill);
+Group.belongsToMany(Category, { through: 'CategoryGroup' });
+Category.belongsToMany(Group, { through: 'CategoryGroup' });
 
 async function findCategoryById(category_id) {
     const category = await Category.findByPk(category_id);
@@ -28,7 +31,16 @@ async function findCategoryById(category_id) {
     return category;
 }
 
+async function setDefaultCategories(group) {
+    for(i=1;i<9;i++) {
+        const category = await findCategoryById(i);
+        await group.addCategory(category);
+        await group.save();
+    }
+}
+
 module.exports = {
     Category,
-    findCategoryById
+    findCategoryById,
+    setDefaultCategories
 }

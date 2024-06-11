@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup, getAllDebts, setGroupAsFavorite } = require('../controllers/groups');
+const { getGroups, getAllGroups, createGroup, addGroupMember, removeGroupMember, acceptGroupInvitation, getGroupMembers, getGroupBills, addBillToGroup, getAllDebts, setGroupAsFavorite, getGroupCategories, addCategoryToGroup } = require('../controllers/groups');
 
 const router = express.Router();
 
@@ -377,6 +377,76 @@ router.put('/:id/integrant', acceptGroupInvitation);
  *        description: Resource not found
  */
  router.get('/:id/bills', getGroupBills);
+
+/**
+ * @openapi
+ * '/groups/{id}/categories':
+ *  get:
+ *     tags:
+ *     - Categories Controller
+ *     summary: Get all categories from a group
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     responses:
+ *      200:
+ *        description: OK
+ *      404:
+ *        description: Resource not found
+ */
+  router.get('/:id/categories', getGroupCategories);
+
+/**
+ * @openapi
+ * '/groups/{id}/categories':
+ *  post:
+ *     tags:
+ *     - Categories Controller
+ *     summary: Create a category for a group
+ *     security:
+ *     - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *        type: integer
+ *       description: Group id
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            type: object
+ *            required:
+ *              - name
+ *            properties:
+ *              name:
+ *                type: string
+ *                default: Gift
+ *              icon:
+ *                type: string
+ *                default: 🎁
+ *              color:
+ *                type: string
+ *                default: "#FF69B4"
+ *     responses:
+ *      201:
+ *        description: Created
+ *      400:
+ *        description: Bad Request
+ *      401:
+ *        description: Unauthorized
+ *      500:
+ *        description: Server Error
+ */
+ router.post('/:id/categories', addCategoryToGroup);
 
  /**
  * @openapi
