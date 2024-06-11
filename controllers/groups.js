@@ -25,7 +25,8 @@ async function getAllGroups(req, res) {
 
     try {
         const groups = await user.getGroups();
-        res.status(200).json(groups);
+        const sortedGroups = groups.sort((group1, group2) => group2.UserGroup.favorite - group1.UserGroup.favorite);
+        res.status(200).json(sortedGroups);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
