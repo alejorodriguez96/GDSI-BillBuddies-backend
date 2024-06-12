@@ -12,7 +12,7 @@ const sendEmail = async (to, subject, text, isHTML) => {
     try {
         if (isHTML) {
             await transporter.sendMail({
-                from: process.env.EMAIL_USER,
+                from: `Bill Buddies <${process.env.EMAIL_USER}>`,
                 to,
                 subject,
                 html: text
@@ -20,7 +20,7 @@ const sendEmail = async (to, subject, text, isHTML) => {
             return;
         }
         await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+            from: `Bill Buddies <${process.env.EMAIL_USER}>`,
             to,
             subject,
             text

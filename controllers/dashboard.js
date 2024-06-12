@@ -15,30 +15,86 @@ const userDashboardTokenPayload = {
     },
     "resources": [{
         "type": "dashboard",
-        "id": "7e19c962-4757-4cae-ac78-4d426263a441"
+        "id": "f7264cbc-3ae6-4cd1-a931-8fe050692b42"
     }],
     "rls": []
 };
 
-async function getDashboardToken(req, res) {
+async function getToken(payload) {
     try {
         const accessToken = await authenticateWithPreset();
         const response = await axios.post(
             "https://api.app.preset.io/v1/teams/3d97b21e/workspaces/41860ebc/guest-token/",
-            userDashboardTokenPayload,
+            payload,
             {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 }
             }
         );
-        console.log(response);
-        res.status(200).json({ token: response.data.payload.token });
+        return response.data.payload.token;
+    } catch (error) {
+        return error.message;
+    }
+
+}
+
+async function getDashboardToken(req, res) {
+    try {
+        const token = await getToken(userDashboardTokenPayload);
+        res.status(200).json({ token });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
+const userSlimDashboardTokenPayload = {
+    "user": {
+        "username": "example_username",
+        "first_name": "First",
+        "last_name": "Last"
+    },
+    "resources": [{
+        "type": "dashboard",
+        "id": "a31da8a0-9cef-43c7-8515-85169511ade6"
+    }],
+    "rls": []
+};
+
+async function getSlimDashboardToken(req, res) {
+    try {
+        const token = await getToken(userSlimDashboardTokenPayload);
+        res.status(200).json({ token });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const groupDashboardTokenPayload = {
+    "user": {
+        "username": "example_username",
+        "first_name": "First",
+        "last_name": "Last"
+    },
+    "resources": [{
+        "type": "dashboard",
+        "id": "c0f8a3e9-c671-4ac3-9570-c8083e9c803e"
+    }],
+    "rls": []
+};
+
+async function getGroupDashboardToken(req, res) {
+    try {
+        const token = await getToken(groupDashboardTokenPayload);
+        res.status(200).json({ token });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+
 module.exports = {
-    getDashboardToken
+    getDashboardToken,
+    getSlimDashboardToken,
+    getGroupDashboardToken
 };
