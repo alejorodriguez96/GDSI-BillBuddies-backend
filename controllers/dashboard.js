@@ -24,7 +24,7 @@ async function getToken(payload) {
     try {
         const accessToken = await authenticateWithPreset();
         const response = await axios.post(
-            "https://api.app.preset.io/v1/teams/3d97b21e/workspaces/41860ebc/guest-token/",
+            "https://api.app.preset.io/v1/teams/85dfb479/workspaces/4e8cd7f4/guest-token/",
             payload,
             {
                 headers: {
