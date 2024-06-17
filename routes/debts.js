@@ -44,7 +44,7 @@ const router = express.Router();
             console.log(show);
 
             if (show) {
-                result.push({ ...debt, show});
+                result.push({ ...debt.dataValues, show});
             }
         }
         res.status(200).json(result);
