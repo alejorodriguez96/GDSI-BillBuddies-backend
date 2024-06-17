@@ -231,13 +231,12 @@ async function getGroupBills(req, res) {
             const bill = returnData[i];
             const billDate = new Date(bill.createdAt);
             const installment = bill.isInInstallments ? bill.installment : 1;
-            const auxDate = new Date(billDate + (installment - 1) * 30 * 24 * 60 * 60 * 1000);
+            let auxDate = new Date(billDate);
+            auxDate.setDate(billDate.getDate() + (installment - 1) * 30);
             const show = new Date() >= auxDate;
             if (bill.isInInstallments && !show){
                 continue;
             }
-            console.log(auxDate);
-            console.log(new Date());
             response.push(bill);
         }
         

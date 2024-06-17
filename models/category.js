@@ -33,9 +33,14 @@ async function findCategoryById(category_id) {
 
 async function setDefaultCategories(group) {
     for(i=1;i<9;i++) {
-        const category = await findCategoryById(i);
-        await group.addCategory(category);
-        await group.save();
+        try {
+
+            const category = await findCategoryById(i);
+            await group.addCategory(category);
+            await group.save();
+        } catch (error) {
+            console.log(error);
+        }
     }
 }
 
