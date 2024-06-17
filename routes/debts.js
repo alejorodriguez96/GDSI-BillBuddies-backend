@@ -33,9 +33,15 @@ const router = express.Router();
         for (let i = 0; i < debts.length; i++) {
             const debt = debts[i];
             const bill = bills.find(bill => bill.id == debt.billId);
+            console.log(bill);
             const billDate = new Date(bill.createdAt);
+            console.log(billDate);
             const installment = bill.isInInstallments ? bill.installment : 1;
+            console.log(installment);
             const show = new Date() >= billDate + (installment - 1) * 30 * 24 * 60 * 60 * 1000; //TODO fix this jeje
+            console.log(show);
+
+
             if (show) {
                 result.push({ ...debt, show});
             }
