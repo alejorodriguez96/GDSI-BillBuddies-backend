@@ -1,8 +1,7 @@
-const { Debts } = require('../models/debts'); // Asegúrate de que la ruta es correcta
+const { Debts } = require('../models/debts');
 const { User } = require('../models/user');
+const { Group } = require('../models/group');
 const { createObjectCsvStringifier } = require('csv-writer');
-const fs = require('fs');
-const path = require('path');
 const { Op } = require('sequelize');
 
 
@@ -11,11 +10,8 @@ async function getCsvDebtsReport(req, res) {
     const { user } = req;
     const user_id_owner = user.id;
 
-    console.log(`User ID: ${user_id_owner}`);
-
-
     const debts = await Debts.findAll({
-        attributes: ['amount', 'amountPaid', 'groupId', 'userFromId', 'userToId'],
+        attributes: ['amount', 'amountPaid', 'userFromId', 'userToId'],
         where: {
             [Op.or]: [
                 { userFromId: user_id_owner },
@@ -23,54 +19,44 @@ async function getCsvDebtsReport(req, res) {
             ]
         },
         include: [
-          { model: User, as: 'UserFrom' },
-          { model: User, as: 'UserTo' }
+            { model: User, as: 'UserFrom', attributes: ['id', 'first_name', 'last_name'] },
+            { model: User, as: 'UserTo', attributes: ['id', 'first_name', 'last_name'] },
+            { model: Group, attributes: ['id', 'name'] }
         ]
     });
 
-    // Asegúrate de manejar los resultados y posibles errores
     if (!debts) {
         return res.status(404).json({ error: 'No debts found' });
     }
 
-    // const csvWriter = createObjectCsvWriter({
-    //     path: path.join(__dirname, 'debts_report.csv'),
-    //     header: [
-    //         { id: 'amount', title: 'Amount' },
-    //         { id: 'amountPaid', title: 'amount_paid' },
-    //         { id: 'groupId', title: 'group_id' },
-    //         { id: 'userFromId', title: 'user_id to_pay' },
-    //         { id: 'userToId', title: 'user_id_debt' },
-    //     ]
-    // });
-
-
-    // await csvWriter.writeRecords(debts.map(debt => debt.dataValues));
-
-    // // Envía el archivo CSV como respuesta
-    // res.sendFile(path.join(__dirname, 'debts_report.csv'));
-
-    // Crear el CSV en memoria
     const csvStringifier = createObjectCsvStringifier({
         header: [
-            { id: 'amount', title: 'Amount' },
-            { id: 'amountPaid', title: 'Amount Paid' },
-            { id: 'groupId', title: 'Group ID' },
-            { id: 'userFromId', title: 'User From ID' },
-            { id: 'userToId', title: 'User To ID' },
+            { id: 'groupName', title: 'group_name' },
+            { id: 'userFromFullName', title: 'debtor_user' },
+            { id: 'userToFullName', title: 'user_to_pay' },
+            { id: 'remainingAmount', title: 'remaining_amount' },
         ]
     });
 
     const csvHeader = csvStringifier.getHeaderString();
-    const csvBody = csvStringifier.stringifyRecords(debts.map(debt => debt.dataValues));
+    // const csvBody = csvStringifier.stringifyRecords(debts.map(debt => debt.dataValues));
+    const csvBody = csvStringifier.stringifyRecords(debts.map(debt => {
+        const { amount, amountPaid } = debt;
+        const remainingAmount = amount - amountPaid;
+        const groupName = debt.Group ? debt.Group.name : '';
+        const userFromFullName = debt.UserFrom ? `${debt.UserFrom.first_name} ${debt.UserFrom.last_name}` : '';
+        const userToFullName = debt.UserTo ? `${debt.UserTo.first_name} ${debt.UserTo.last_name}` : '';
+        return {
+            groupName,
+            userFromFullName,
+            userToFullName,
+            remainingAmount
+        };
+    }));
     const csvString = csvHeader + csvBody;
 
-    // Convertir a base64
     const csvBase64 = Buffer.from(csvString).toString('base64');
-
-    // Devolver en el campo `data` del cuerpo de la respuesta
     res.json({ data: csvBase64 });
-
 }
 
 module.exports = {
