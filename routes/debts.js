@@ -38,12 +38,10 @@ const router = express.Router();
             console.log(billDate);
             const installment = bill.isInInstallments ? bill.installment : 1;
             console.log(installment);
-            const show = new Date() >= billDate + (installment - 1) * 30 * 24 * 60 * 60 * 1000; //TODO fix this jeje
-            console.log(new Date())
-            console.log((installment - 1) * 30 * 24 * 60 * 60 * 1000);
-            console.log(billDate + (installment - 1) * 30 * 24 * 60 * 60 * 1000);
+            const auxDate = new Date(billDate + (installment - 1) * 30 * 24 * 60 * 60 * 1000);
+            console.log(auxDate);
+            const show = new Date() >= auxDate;
             console.log(show);
-
 
             if (show) {
                 result.push({ ...debt, show});
