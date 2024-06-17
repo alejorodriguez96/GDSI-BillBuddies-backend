@@ -229,7 +229,9 @@ async function getGroupBills(req, res) {
         let response = [];
         for (let i = 0; i < returnData.length; i++) {
             const bill = returnData[i];
-            if (bill.isInInstallments && new Date() >= new Date(bill.createdAt) + (bill.installment - 1) * 30 * 24 * 60 * 60 * 1000){
+            const auxDate = new Date(billDate + (installment - 1) * 30 * 24 * 60 * 60 * 1000);
+            const show = new Date() >= auxDate;
+            if (bill.isInInstallments && !show){
                 continue;
             }
             response.push(bill);
@@ -256,8 +258,9 @@ async function addBillToGroup(req, res) {
         const userToPay = await findUserById(user_id_owner);
 
         if (installments && installments > 1) {
+            const installmentAmount = bill_amount / installments;
             for (let i = 1; i <= installments; i++) {
-                await handleBillCreation(mode, users, debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, i, installments);
+                await handleBillCreation(mode, users, debts_list, installmentAmount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, i, installments);
             }
         } else {
             await handleBillCreation(mode, users, debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup);
