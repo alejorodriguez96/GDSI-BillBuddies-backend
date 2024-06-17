@@ -15,7 +15,19 @@ const Bill = sequelize.define('Bill', {
     paidOff: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
-    }
+    },
+    isInInstallments: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    installment: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1
+    },
+    totalInstallments: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1
+    },
 }, {
     tableName: 'bills',
 });

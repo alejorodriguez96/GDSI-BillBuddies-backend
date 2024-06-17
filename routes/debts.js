@@ -28,7 +28,19 @@ const router = express.Router();
     const { user } = req;
     try {
         const debts = await user.getDebtsFrom();
-        res.status(200).json(debts);
+        const bills = await Bill.findAll();
+        let result = [];
+        for (let i = 0; i < debts.length; i++) {
+            const debt = debts[i];
+            const bill = bills.find(bill => bill.id == debt.billId);
+            const billDate = new Date(bill.createdAt);
+            const installment = bill.isInInstallments ? bill.installment : 1;
+            const show = new Date() >= billDate + (installment - 1) * 30 * 24 * 60 * 60 * 1000; //TODO fix this jeje
+            if (show) {
+                result.push({ ...debt, show});
+            }
+        }
+        res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
