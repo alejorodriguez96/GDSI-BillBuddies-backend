@@ -220,10 +220,22 @@ async function getGroupBills(req, res) {
             last_name: bill.User.last_name,
             amount: bill.amount,
             paidOff: bill.paidOff,
-            category: bill.Category
+            category: bill.Category,
+            createdAt: bill.createdAt,
+            isInInstallments: bill.isInInstallments,
+            installment: bill.installment,
+            totalInstallments: bill.totalInstallments
         }));
+        let response = [];
+        for (let i = 0; i < returnData.length; i++) {
+            const bill = returnData[i];
+            if (bill.isInInstallments && new Date() >= new Date(bill.createdAt) + (bill.installment - 1) * 30 * 24 * 60 * 60 * 1000){
+                continue;
+            }
+            response.push(bill);
+        }
         
-        res.status(200).json(returnData);
+        res.status(200).json(response);
 
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -231,7 +243,7 @@ async function getGroupBills(req, res) {
 }
 
 async function addBillToGroup(req, res) {
-    const { group_id, bill_amount, mode, category_id, debts_list} = req.body;
+    const { group_id, bill_amount, mode, category_id, debts_list, installments } = req.body;
     const { user } = req;
     const user_id_owner = user.id;
 
@@ -243,15 +255,14 @@ async function addBillToGroup(req, res) {
         const category = await findCategoryById(category_id);
         const userToPay = await findUserById(user_id_owner);
 
-        if (mode === "equitative") {
-            await handleEquitativeMode(users, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup);
-        } else if (mode === "fixed" && debts_list) {
-            await handleFixedMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup);
-        } else if (mode === "percentage" && debts_list) {
-            await handlePercentageMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup);
+        if (installments && installments > 1) {
+            for (let i = 1; i <= installments; i++) {
+                await handleBillCreation(mode, users, debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, i, installments);
+            }
         } else {
-            return res.status(400).json({ error: 'Invalid mode or missing debts_list' });
+            await handleBillCreation(mode, users, debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup);
         }
+        
 
         res.status(201).json({ success: true });
     } catch (error) {
@@ -259,16 +270,31 @@ async function addBillToGroup(req, res) {
     }
 }
 
-async function handleEquitativeMode(users, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup) {
+async function handleBillCreation(mode, users, debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, installment = 1, totalInstallments = 1) {
+    if (mode === "equitative") {
+        await handleEquitativeMode(users, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, installment, totalInstallments);
+    } else if (mode === "fixed" && debts_list) {
+        await handleFixedMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, installment, totalInstallments);
+    } else if (mode === "percentage" && debts_list) {
+        await handlePercentageMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, installment, totalInstallments);
+    } else {
+        throw new Error('Invalid mode');
+    }
+}
+
+async function handleEquitativeMode(users, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, installment = 1, totalInstallments = 1) {
     const bill = await Bill.create({
         amount: bill_amount,
         pendingDebts: debtsToPay,
         UserId: user_id_owner,
-        GroupId: group_id
+        GroupId: group_id,
+        installment,
+        totalInstallments,
+        isInInstallments: totalInstallments > 1
     });
     await bill.setCategory(category);
     await bill.save();
-    
+    const sendNotification = installment <= 1;
     const equitativeAmount = bill_amount / users.length;
     for (const user of users) {
         if (user.id !== user_id_owner) {
@@ -277,14 +303,16 @@ async function handleEquitativeMode(users, bill_amount, debtsToPay, user_id_owne
                 userFromId: user.id,
                 userToId: user_id_owner,
                 groupId: group_id,
-                billId: bill.id
+                billId: bill.id,
             });
-            await handleDebtNotification(userToPay, equitativeAmount, selectedGroup, user);
+            if (sendNotification) {
+                await handleDebtNotification(userToPay, equitativeAmount, selectedGroup, user);
+            }
         }
     }
 }
 
-async function handleFixedMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup) {
+async function handleFixedMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, installment = 1, totalInstallments = 1) {
 
     const totalDebtsAmount = debts_list.reduce((sum, debt) => sum + debt.amount, 0);
 
@@ -303,11 +331,14 @@ async function handleFixedMode(debts_list, bill_amount, debtsToPay, user_id_owne
         amount: bill_amount,
         pendingDebts: debtsToPay,
         UserId: user_id_owner,
-        GroupId: group_id
+        GroupId: group_id,
+        installment,
+        totalInstallments,
+        isInInstallments: totalInstallments > 1
     });
     await bill.setCategory(category);
     await bill.save();
-
+    const sendNotification = installment <= 1;
     for (const { id, amount } of debts_list) {
         if (id !==  user_id_owner) {
             await Debts.create({
@@ -315,11 +346,13 @@ async function handleFixedMode(debts_list, bill_amount, debtsToPay, user_id_owne
                 userFromId: id,
                 userToId: user_id_owner,
                 groupId: group_id,
-                billId: bill.id
+                billId: bill.id,
             });
     
             const userFrom = await findUserById(id);
-            await handleDebtNotification(userToPay, amount, selectedGroup, userFrom);
+            if (sendNotification) {
+                await handleDebtNotification(userToPay, amount, selectedGroup, userFrom);
+            }
         }        
     }
 }
@@ -335,7 +368,7 @@ async function handleDebtNotification(userToPay, amount, selectedGroup, userFrom
     }
 }
 
-async function handlePercentageMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup) {
+async function handlePercentageMode(debts_list, bill_amount, debtsToPay, user_id_owner, group_id, category, userToPay, selectedGroup, installment = 1, totalInstallments = 1) {
 
     const totalPercentageDebtsAmount = debts_list.reduce((sum, debt) => sum + debt.amount, 0);
 
@@ -354,11 +387,14 @@ async function handlePercentageMode(debts_list, bill_amount, debtsToPay, user_id
         amount: bill_amount,
         pendingDebts: debtsToPay,
         UserId: user_id_owner,
-        GroupId: group_id
+        GroupId: group_id,
+        installment,
+        totalInstallments,
+        isInInstallments: totalInstallments > 1
     });
     await bill.setCategory(category);
     await bill.save();
-
+    const sendNotification = installment <= 1;
     for (const { id, amount } of debts_list) {
         if (id !==  user_id_owner) {
             total_amount  = bill_amount * amount / 100;
@@ -372,7 +408,9 @@ async function handlePercentageMode(debts_list, bill_amount, debtsToPay, user_id
             });
     
             const userFrom = await findUserById(id);
-            await handleDebtNotification(userToPay, total_amount, selectedGroup, userFrom);
+            if (sendNotification) {
+                await handleDebtNotification(userToPay, total_amount, selectedGroup, userFrom);
+            }
         }        
     }
 }
